@@ -84,4 +84,4 @@ optional arguments:
 
 ## Compatibility
 
-Tested on Python. Feel free to [open an issue] if you have bug reports or questions.
+Tested on Python 2.7 in Kali Linux. Feel free to [open an issue] if you have bug reports or questions.

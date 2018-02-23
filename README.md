@@ -53,14 +53,14 @@ Cloudflare IP Catcher (Auto DIG)...
 $ git clone https://github.com/MrH0wl/Cloudmare.git
 ```
 
-4) Install the dependencies
+2) Install the dependencies
 
 ```
 $ cd cloudmare
 $ pip install -r requirements.txt
 ```
 
-5) Run Cloudmare (see [Usage](#usage) below for more detail)
+3) Run Cloudmare (see [Usage](#usage) below for more detail)
 
 ```
 $ python cloudmare.py target.site -s sub.myvulnerable.site

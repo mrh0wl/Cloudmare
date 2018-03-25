@@ -2,5 +2,6 @@ colorama
 requests
 urllib3
 dnspython
-html-similarity
+html_similarity
 argparse
+dnsdumpster

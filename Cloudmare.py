@@ -174,8 +174,8 @@ def Checking_IP(domain):
 		exit(1)
 
 	if org_response.url != url:
-		print ((Fore.BLUE + '[*]' + Fore.RESET) + ' %s redirects to %s.' % (url, org_response.url))
-		print ('\n' + Fore.GREEN + "   [+]" + Fore.RESET + " Request redirected successful to %s." % org_response.url)
+		print ((Fore.GREEN + '[+]' + Fore.RESET) + ' %s redirects to %s.' % (url, org_response.url))
+		print (Fore.GREEN + "   [+]" + Fore.RESET + " Request redirected successful to %s." % org_response.url)
 	print ((Fore.BLUE + '[*]' + Fore.RESET + ' Testing if body content is the same in both websites.'))
 	
 	sec_response = requests.get('http://' + str(A), timeout=config['http_timeout_seconds'])

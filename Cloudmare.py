@@ -45,7 +45,7 @@ def logotype():
 def parse_error(errmsg):
     logotype()
     print("Usage: python " + sys.argv[0] + " [Options] use -h for help")
-    print(Fore.BLUE + "[*] " + Fore.RESET + "Error: \n" + Fore.RED + "   [-] " + Fore.RESET + errmsg)
+    print(Fore.RED + "[-] " + Fore.RESET + errmsg)
     exit(1)
 	
 def parse_args():

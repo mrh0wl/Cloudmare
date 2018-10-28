@@ -22,8 +22,8 @@ from colorama import Fore, Style, Back
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 colorama.init(autoreset=True)
 config = {
-    'http_timeout_seconds': 3,
-    'response_similarity_threshold': 0.9
+	'http_timeout_seconds': 3,
+	'response_similarity_threshold': 0.9
 }
 
 def logotype():
@@ -43,10 +43,10 @@ def logotype():
 
 
 def parse_error(errmsg):
-    logotype()
-    print("Usage: python " + sys.argv[0] + " [Options] use -h for help")
-    print(Fore.RED + "[-] " + Fore.RESET + errmsg)
-    exit(1)
+	logotype()
+	print("Usage: python " + sys.argv[0] + " [Options] use -h for help")
+	print(Fore.RED + "[-] " + Fore.RESET + errmsg)
+	exit(1)
 
 def parse_args():
 	parser = argparse.ArgumentParser(epilog="\tExample: \r\npython " + sys.argv[0] + " [DOMAIN] -s -o output.txt")
@@ -225,9 +225,9 @@ if __name__=="__main__":
 		sys_r = Resolver()
 		domain = args.domain
 		if args.subdomain == True:
-			ns = put_file()
 			logotype()
 			subdomain_tracking(domain)
+			ns = put_file()
 		elif args.ns != None:
 			ns = args.ns
 			logotype()

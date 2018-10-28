@@ -17,7 +17,7 @@ $ python Cloudmare.py target.site -s
  ================================================
  ||                  Secmare                   ||
  ||            twitter.com/secmare             ||
- ||                   v1.4                     ||
+ ||                  v1.4.56                   ||
  ================================================
 	
 Tracking subdomains and MX records...
@@ -110,6 +110,8 @@ OPTIONS:
   -h, --help       show this help message and exit
   -v, --version    show program's version number and exit
   -s, --subdomain  Scan for subdomain
+  -ns, --nameserver Scan using your obtained NameServer
+
 
 Example: python Cloudmare.py [DOMAIN] -s
 ```

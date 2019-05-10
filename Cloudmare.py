@@ -56,7 +56,6 @@ def parse_args():
 	parser.add_argument("domain", metavar="[domain]",help="The domain to scan")
 	parser.add_argument("-s", "--subdomain", help="Scan for subdomain misconfigured", action="store_true", default=False)
 	parser.add_argument("-ns", "--nameserver", help="Scan using your obtained NameServer", action='store', dest='ns', default=None)
-	#parser.add_argument("-o", "--output", help="Export the data from the script")
 	return parser.parse_args()
 
 

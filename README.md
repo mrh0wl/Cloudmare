@@ -119,3 +119,5 @@ Example: python Cloudmare.py [DOMAIN] -s
 ## Compatibility
 
 Tested on Python 2.7 in Kali Linux. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
+
+[open an issue]: https://github.com/MrH0wl/Cloudmare/issues/new

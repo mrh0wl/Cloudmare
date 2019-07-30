@@ -45,7 +45,7 @@ Tested on Python 2.7 in Kali Linux. Feel free to [open an issue] if you have bug
 
 If you wish, you can invite me to a cup of coffee, it only costs 1 USD. If you donate please send me a message on [Twitter] to add you to the "Hall of Donors"
 
-[open an issue]: https://twitter.com/SecMare
+[Twitter]: https://twitter.com/SecMare
 ```
 >15eDRtaHU1frXFp4RGBHRzLqc26ZvzTsn5
 ```

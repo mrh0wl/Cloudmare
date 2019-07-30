@@ -1,7 +1,0 @@
-colorama
-requests
-urllib3
-dnspython
-html_similarity
-argparse
-dnsdumpster

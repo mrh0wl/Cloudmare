@@ -6,9 +6,7 @@ For more detail about this common misconfiguration and how Cloudmare works, send
 
 Here's what Cloudmare looks like in action.
 
-```
 ![Example usage](https://i.imgur.com/XLpvDb5.png "Example usage")
-```
 
 (_The IP addresses in this example have been obfuscated and replaced by randomly generated IPs_)
 
@@ -35,9 +33,7 @@ $ python cloudmare.py target.site --subdomain
 
 ## Usage
 
-```
 ![Help options](https://i.imgur.com/rSpy6Pf.png "Help options")
-```
 
 ## Compatibility
 

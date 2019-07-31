@@ -28,7 +28,7 @@ try:
 	import lxml
 except ImportError:
 	logotype()
-	quest(question=(info + 'WARNING: A module is required. Do you want to install? y/n: '), doY = "pipmain(['install', 'lxml])", doN = "sys.exit()")
+	quest(question=(info + 'WARNING: A module is required. Do you want to install? y/n: '), doY = "pipmain(['install', 'lxml'])", doN = "sys.exit()")
 
 from thirdparty.html_similarity import similarity
 from lib.core.dnslookup import Checking_DNS, Resolver

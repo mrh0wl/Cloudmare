@@ -13,6 +13,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import base64
 import calendar
 import struct
 import time
@@ -22,9 +23,11 @@ import thirdparty.dns.exception
 import thirdparty.dns.rdata
 import thirdparty.dns.rdatatype
 
+
 class BadSigTime(thirdparty.dns.exception.DNSException):
-    """Raised when a SIG or RRSIG RR's time cannot be parsed."""
-    pass
+
+    """Time in DNS SIG or RRSIG resource record cannot be parsed."""
+
 
 def sigtime_to_posixtime(what):
     if len(what) != 14:
@@ -38,10 +41,13 @@ def sigtime_to_posixtime(what):
     return calendar.timegm((year, month, day, hour, minute, second,
                             0, 0, 0))
 
+
 def posixtime_to_sigtime(what):
     return time.strftime('%Y%m%d%H%M%S', time.gmtime(what))
 
+
 class RRSIG(thirdparty.dns.rdata.Rdata):
+
     """RRSIG record
 
     @ivar type_covered: the rdata type this signature covers
@@ -59,7 +65,7 @@ class RRSIG(thirdparty.dns.rdata.Rdata):
     @ivar key_tag: the key tag
     @type key_tag: int
     @ivar signer: the signer
-    @type signer: dns.name.Name object
+    @type signer: thirdparty.dns.name.Name object
     @ivar signature: the signature
     @type signature: string"""
 
@@ -86,7 +92,7 @@ class RRSIG(thirdparty.dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%s %d %d %d %s %s %d %s %s' % (
-            dns.rdatatype.to_text(self.type_covered),
+            thirdparty.dns.rdatatype.to_text(self.type_covered),
             self.algorithm,
             self.labels,
             self.original_ttl,
@@ -94,10 +100,11 @@ class RRSIG(thirdparty.dns.rdata.Rdata):
             posixtime_to_sigtime(self.inception),
             self.key_tag,
             self.signer.choose_relativity(origin, relativize),
-            dns.rdata._base64ify(self.signature)
-            )
+            thirdparty.dns.rdata._base64ify(self.signature)
+        )
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         type_covered = thirdparty.dns.rdatatype.from_text(tok.get_string())
         algorithm = thirdparty.dns.dnssec.algorithm_from_text(tok.get_string())
         labels = tok.get_int()
@@ -113,17 +120,15 @@ class RRSIG(thirdparty.dns.rdata.Rdata):
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        b64 = ''.join(chunks)
-        signature = b64.decode('base64_codec')
+                raise thirdparty.dns.exception.SyntaxError
+            chunks.append(t.value.encode())
+        b64 = b''.join(chunks)
+        signature = base64.b64decode(b64)
         return cls(rdclass, rdtype, type_covered, algorithm, labels,
                    original_ttl, expiration, inception, key_tag, signer,
                    signature)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         header = struct.pack('!HBBIIIH', self.type_covered,
                              self.algorithm, self.labels,
                              self.original_ttl, self.expiration,
@@ -132,24 +137,20 @@ class RRSIG(thirdparty.dns.rdata.Rdata):
         self.signer.to_wire(file, None, origin)
         file.write(self.signature)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        header = struct.unpack('!HBBIIIH', wire[current : current + 18])
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        header = struct.unpack('!HBBIIIH', wire[current: current + 18])
         current += 18
         rdlen -= 18
         (signer, cused) = thirdparty.dns.name.from_wire(wire[: current + rdlen], current)
         current += cused
         rdlen -= cused
-        if not origin is None:
+        if origin is not None:
             signer = signer.relativize(origin)
-        signature = wire[current : current + rdlen].unwrap()
+        signature = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    header[3], header[4], header[5], header[6], signer,
                    signature)
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         self.signer = self.signer.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        return self._wire_cmp(other)

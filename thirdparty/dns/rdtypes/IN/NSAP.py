@@ -13,11 +13,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import binascii
+
 import thirdparty.dns.exception
 import thirdparty.dns.rdata
 import thirdparty.dns.tokenizer
 
+
 class NSAP(thirdparty.dns.rdata.Rdata):
+
     """NSAP record.
 
     @ivar address: a NASP
@@ -31,29 +35,25 @@ class NSAP(thirdparty.dns.rdata.Rdata):
         self.address = address
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return "0x%s" % self.address.encode('hex_codec')
+        return "0x%s" % binascii.hexlify(self.address).decode()
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         address = tok.get_string()
-        t = tok.get_eol()
+        tok.get_eol()
         if address[0:2] != '0x':
-            raise dns.exception.SyntaxError('string does not start with 0x')
+            raise thirdparty.dns.exception.SyntaxError('string does not start with 0x')
         address = address[2:].replace('.', '')
         if len(address) % 2 != 0:
-            raise dns.exception.SyntaxError('hexstring has odd length')
-        address = address.decode('hex_codec')
+            raise thirdparty.dns.exception.SyntaxError('hexstring has odd length')
+        address = binascii.unhexlify(address.encode())
         return cls(rdclass, rdtype, address)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         file.write(self.address)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        address = wire[current : current + rdlen].unwrap()
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        address = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, address)
 
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return cmp(self.address, other.address)

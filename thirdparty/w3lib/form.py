@@ -4,7 +4,7 @@ if six.PY2:
     from cStringIO import StringIO as BytesIO
 else:
     from io import BytesIO
-from w3lib.util import unicode_to_str
+from thirdparty.w3lib.util import unicode_to_str
 
 
 def encode_multipart(data):

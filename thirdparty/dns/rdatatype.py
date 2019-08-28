@@ -80,10 +80,8 @@ NSEC3 = 50
 NSEC3PARAM = 51
 TLSA = 52
 HIP = 55
-NINFO = 56
 CDS = 59
 CDNSKEY = 60
-OPENPGPKEY = 61
 CSYNC = 62
 SPF = 99
 UNSPEC = 103
@@ -98,7 +96,6 @@ MAILA = 254
 ANY = 255
 URI = 256
 CAA = 257
-AVC = 258
 TA = 32768
 DLV = 32769
 
@@ -153,10 +150,8 @@ _by_text = {
     'NSEC3PARAM': NSEC3PARAM,
     'TLSA': TLSA,
     'HIP': HIP,
-    'NINFO': NINFO,
     'CDS': CDS,
     'CDNSKEY': CDNSKEY,
-    'OPENPGPKEY': OPENPGPKEY,
     'CSYNC': CSYNC,
     'SPF': SPF,
     'UNSPEC': UNSPEC,
@@ -171,7 +166,6 @@ _by_text = {
     'ANY': ANY,
     'URI': URI,
     'CAA': CAA,
-    'AVC': AVC,
     'TA': TA,
     'DLV': DLV,
 }
@@ -180,10 +174,8 @@ _by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
 
-_by_value = {y: x for x, y in _by_text.items()}
-# Render type 0 as "TYPE0" not "NONE", as NONE is a dnspython-ism and not
-# an official mnemonic.
-_by_value[0] = 'TYPE0'
+_by_value = dict((y, x) for x, y in _by_text.items())
+
 
 _metatypes = {
     OPT: True
@@ -194,25 +186,24 @@ _singletons = {
     NXT: True,
     DNAME: True,
     NSEC: True,
-    CNAME: True,
+    # CNAME is technically a singleton, but we allow multiple CNAMEs.
 }
 
 _unknown_type_pattern = re.compile('TYPE([0-9]+)$', re.I)
 
 
 class UnknownRdatatype(thirdparty.dns.exception.DNSException):
+
     """DNS resource record type is unknown."""
 
 
 def from_text(text):
     """Convert text into a DNS rdata type value.
-    The input text can be a defined DNS RR type mnemonic or
-    instance of the DNS generic type syntax.
-    For example, "NS" and "TYPE2" will both result in a value of 2.
-    Raises ``dns.rdatatype.UnknownRdatatype`` if the type is unknown.
-    Raises ``ValueError`` if the rdata type value is not >= 0 and <= 65535.
-    Returns an ``int``.
-    """
+    @param text: the text
+    @type text: string
+    @raises thirdparty.dns.rdatatype.UnknownRdatatype: the type is unknown
+    @raises ValueError: the rdata type value is not >= 0 and <= 65535
+    @rtype: int"""
 
     value = _by_text.get(text.upper())
     if value is None:
@@ -226,12 +217,11 @@ def from_text(text):
 
 
 def to_text(value):
-    """Convert a DNS rdata type value to text.
-    If the value has a known mnemonic, it will be used, otherwise the
-    DNS generic type syntax will be used.
-    Raises ``ValueError`` if the rdata type value is not >= 0 and <= 65535.
-    Returns a ``str``.
-    """
+    """Convert a DNS rdata type to text.
+    @param value: the rdata type value
+    @type value: int
+    @raises ValueError: the rdata type value is not >= 0 and <= 65535
+    @rtype: string"""
 
     if value < 0 or value > 65535:
         raise ValueError("type must be between >= 0 and <= 65535")
@@ -242,12 +232,10 @@ def to_text(value):
 
 
 def is_metatype(rdtype):
-    """True if the specified type is a metatype.
-    *rdtype* is an ``int``.
-    The currently defined metatypes are TKEY, TSIG, IXFR, AXFR, MAILA,
-    MAILB, ANY, and OPT.
-    Returns a ``bool``.
-    """
+    """True if the type is a metatype.
+    @param rdtype: the type
+    @type rdtype: int
+    @rtype: bool"""
 
     if rdtype >= TKEY and rdtype <= ANY or rdtype in _metatypes:
         return True
@@ -255,29 +243,11 @@ def is_metatype(rdtype):
 
 
 def is_singleton(rdtype):
-    """Is the specified type a singleton type?
-    Singleton types can only have a single rdata in an rdataset, or a single
-    RR in an RRset.
-    The currently defined singleton types are CNAME, DNAME, NSEC, NXT, and
-    SOA.
-    *rdtype* is an ``int``.
-    Returns a ``bool``.
-    """
+    """True if the type is a singleton.
+    @param rdtype: the type
+    @type rdtype: int
+    @rtype: bool"""
 
     if rdtype in _singletons:
         return True
     return False
-
-
-def register_type(rdtype, rdtype_text, is_singleton=False):  # pylint: disable=redefined-outer-name
-    """Dynamically register an rdatatype.
-    *rdtype*, an ``int``, the rdatatype to register.
-    *rdtype_text*, a ``text``, the textual form of the rdatatype.
-    *is_singleton*, a ``bool``, indicating if the type is a singleton (i.e.
-    RRsets of the type can have only one member.)
-    """
-
-    _by_text[rdtype_text] = rdtype
-    _by_value[rdtype] = rdtype_text
-    if is_singleton:
-        _singletons[rdtype] = True

@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.nsbase
 
+
 class NS(thirdparty.dns.rdtypes.nsbase.NSBase):
+
     """NS record"""
-    pass

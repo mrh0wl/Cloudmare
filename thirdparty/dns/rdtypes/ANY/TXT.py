@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.txtbase
 
+
 class TXT(thirdparty.dns.rdtypes.txtbase.TXTBase):
+
     """TXT record"""
-    pass

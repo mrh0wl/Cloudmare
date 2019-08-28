@@ -15,19 +15,21 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-import StringIO
+from io import StringIO
 
 import thirdparty.dns.rdataset
 import thirdparty.dns.rdatatype
 import thirdparty.dns.renderer
 
+
 class Node(object):
+
     """A DNS node.
 
     A node is a set of rdatasets
 
     @ivar rdatasets: the node's rdatasets
-    @type rdatasets: list of dns.rdataset.Rdataset objects"""
+    @type rdatasets: list of thirdparty.dns.rdataset.Rdataset objects"""
 
     __slots__ = ['rdatasets']
 
@@ -35,7 +37,7 @@ class Node(object):
         """Initialize a DNS node.
         """
 
-        self.rdatasets = [];
+        self.rdatasets = []
 
     def to_text(self, name, **kw):
         """Convert a node to text format.
@@ -43,14 +45,15 @@ class Node(object):
         Each rdataset at the node is printed.  Any keyword arguments
         to this method are passed on to the rdataset's to_text() method.
         @param name: the owner name of the rdatasets
-        @type name: dns.name.Name object
+        @type name: thirdparty.dns.name.Name object
         @rtype: string
         """
 
-        s = StringIO.StringIO()
+        s = StringIO()
         for rds in self.rdatasets:
             if len(rds) > 0:
-                print >> s, rds.to_text(name, **kw)
+                s.write(rds.to_text(name, **kw))
+                s.write(u'\n')
         return s.getvalue()[:-1]
 
     def __repr__(self):
@@ -91,8 +94,8 @@ class Node(object):
         @param rdtype: The type of the rdataset
         @type rdtype: int
         @param covers: The covered type.  Usually this value is
-        dns.rdatatype.NONE, but if the rdtype is dns.rdatatype.SIG or
-        dns.rdatatype.RRSIG, then the covers value will be the rdata
+        thirdparty.dns.rdatatype.NONE, but if the rdtype is thirdparty.dns.rdatatype.SIG or
+        thirdparty.dns.rdatatype.RRSIG, then the covers value will be the rdata
         type the SIG/RRSIG covers.  The library treats the SIG and RRSIG
         types as if they were a family of
         types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).  This makes RRSIGs much
@@ -103,7 +106,7 @@ class Node(object):
         @type create: bool
         @raises KeyError: An rdataset of the desired type and class does
         not exist and I{create} is not True.
-        @rtype: dns.rdataset.Rdataset object
+        @rtype: thirdparty.dns.rdataset.Rdataset object
         """
 
         for rds in self.rdatasets:
@@ -131,7 +134,7 @@ class Node(object):
         @type covers: int
         @param create: If True, create the rdataset if it is not found.
         @type create: bool
-        @rtype: dns.rdataset.Rdataset object or None
+        @rtype: thirdparty.dns.rdataset.Rdataset object or None
         """
 
         try:
@@ -155,7 +158,7 @@ class Node(object):
         """
 
         rds = self.get_rdataset(rdclass, rdtype, covers)
-        if not rds is None:
+        if rds is not None:
             self.rdatasets.remove(rds)
 
     def replace_rdataset(self, replacement):
@@ -168,8 +171,8 @@ class Node(object):
         at the node, it stores I{replacement} itself.
         """
 
-        if not isinstance(replacement, dns.rdataset.Rdataset):
-            raise ValueError, 'replacement is not an rdataset'
+        if not isinstance(replacement, thirdparty.dns.rdataset.Rdataset):
+            raise ValueError('replacement is not an rdataset')
         self.delete_rdataset(replacement.rdclass, replacement.rdtype,
                              replacement.covers)
         self.rdatasets.append(replacement)

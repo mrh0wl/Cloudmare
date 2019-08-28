@@ -33,7 +33,7 @@ $ python cloudmare.py target.site --subdomain
 
 ## Usage
 
-![Help options](https://i.imgur.com/rSpy6Pf.png "Help options")
+![Help options](https://i.imgur.com/DKQbYz2.png "Help options")
 
 ## Compatibility
 
@@ -53,5 +53,5 @@ If you wish, you can invite me to a cup of coffee, it only costs 1 USD. If you d
 ## Hall of Donors
 
 ```
-
+1. Anonymous donation (0.001202 BTC)
 ```

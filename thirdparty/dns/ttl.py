@@ -16,40 +16,46 @@
 """DNS TTL conversion."""
 
 import thirdparty.dns.exception
+from ._compat import long
+
 
 class BadTTL(thirdparty.dns.exception.SyntaxError):
+
     """DNS TTL value is not well-formed."""
 
 
 def from_text(text):
     """Convert the text form of a TTL to an integer.
+
     The BIND 8 units syntax for TTLs (e.g. '1w6d4h3m10s') is supported.
-    *text*, a ``text``, the textual TTL.
-    Raises ``dns.ttl.BadTTL`` if the TTL is not well-formed.
-    Returns an ``int``.
+
+    @param text: the textual TTL
+    @type text: string
+    @raises thirdparty.dns.ttl.BadTTL: the TTL is not well-formed
+    @rtype: int
     """
 
     if text.isdigit():
-        total = int(text)
+        total = long(text)
     else:
         if not text[0].isdigit():
             raise BadTTL
-        total = 0
-        current = 0
+        total = long(0)
+        current = long(0)
         for c in text:
             if c.isdigit():
                 current *= 10
-                current += int(c)
+                current += long(c)
             else:
                 c = c.lower()
                 if c == 'w':
-                    total += current * 604800
+                    total += current * long(604800)
                 elif c == 'd':
-                    total += current * 86400
+                    total += current * long(86400)
                 elif c == 'h':
-                    total += current * 3600
+                    total += current * long(3600)
                 elif c == 'm':
-                    total += current * 60
+                    total += current * long(60)
                 elif c == 's':
                     total += current
                 else:
@@ -57,6 +63,6 @@ def from_text(text):
                 current = 0
         if not current == 0:
             raise BadTTL("trailing integer")
-    if total < 0 or total > 2147483647:
+    if total < long(0) or total > long(2147483647):
         raise BadTTL("TTL should be between 0 and 2^31 - 1 (inclusive)")
     return total

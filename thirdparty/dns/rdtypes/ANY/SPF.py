@@ -15,8 +15,9 @@
 
 import thirdparty.dns.rdtypes.txtbase
 
+
 class SPF(thirdparty.dns.rdtypes.txtbase.TXTBase):
+
     """SPF record
 
     @see: RFC 4408"""
-    pass

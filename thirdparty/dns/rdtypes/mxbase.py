@@ -15,20 +15,22 @@
 
 """MX-like base classes."""
 
-import cStringIO
+from io import BytesIO
 import struct
 
 import thirdparty.dns.exception
 import thirdparty.dns.rdata
 import thirdparty.dns.name
 
+
 class MXBase(thirdparty.dns.rdata.Rdata):
+
     """Base class for rdata that is like an MX record.
 
     @ivar preference: the preference value
     @type preference: int
     @ivar exchange: the exchange name
-    @type exchange: dns.name.Name object"""
+    @type exchange: thirdparty.dns.name.Name object"""
 
     __slots__ = ['preference', 'exchange']
 
@@ -41,65 +43,59 @@ class MXBase(thirdparty.dns.rdata.Rdata):
         exchange = self.exchange.choose_relativity(origin, relativize)
         return '%d %s' % (self.preference, exchange)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         preference = tok.get_uint16()
         exchange = tok.get_name()
         exchange = exchange.choose_relativity(origin, relativize)
         tok.get_eol()
         return cls(rdclass, rdtype, preference, exchange)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         pref = struct.pack("!H", self.preference)
         file.write(pref)
         self.exchange.to_wire(file, compress, origin)
 
-    def to_digestable(self, origin = None):
+    def to_digestable(self, origin=None):
         return struct.pack("!H", self.preference) + \
             self.exchange.to_digestable(origin)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        (preference, ) = struct.unpack('!H', wire[current : current + 2])
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        (preference, ) = struct.unpack('!H', wire[current: current + 2])
         current += 2
         rdlen -= 2
         (exchange, cused) = thirdparty.dns.name.from_wire(wire[: current + rdlen],
                                                current)
         if cused != rdlen:
-            raise dns.exception.FormError
-        if not origin is None:
+            raise thirdparty.dns.exception.FormError
+        if origin is not None:
             exchange = exchange.relativize(origin)
         return cls(rdclass, rdtype, preference, exchange)
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         self.exchange = self.exchange.choose_relativity(origin, relativize)
 
-    def _cmp(self, other):
-        sp = struct.pack("!H", self.preference)
-        op = struct.pack("!H", other.preference)
-        v = cmp(sp, op)
-        if v == 0:
-            v = cmp(self.exchange, other.exchange)
-        return v
 
 class UncompressedMX(MXBase):
+
     """Base class for rdata that is like an MX record, but whose name
     is not compressed when converted to DNS wire format, and whose
     digestable form is not downcased."""
 
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         super(UncompressedMX, self).to_wire(file, None, origin)
 
-    def to_digestable(self, origin = None):
-        f = cStringIO.StringIO()
+    def to_digestable(self, origin=None):
+        f = BytesIO()
         self.to_wire(f, None, origin)
         return f.getvalue()
 
+
 class UncompressedDowncasingMX(MXBase):
+
     """Base class for rdata that is like an MX record, but whose name
     is not compressed when convert to DNS wire format."""
 
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         super(UncompressedDowncasingMX, self).to_wire(file, None, origin)

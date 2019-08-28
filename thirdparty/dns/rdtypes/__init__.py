@@ -18,6 +18,7 @@
 __all__ = [
     'ANY',
     'IN',
+    'euibase',
     'mxbase',
     'nsbase',
 ]

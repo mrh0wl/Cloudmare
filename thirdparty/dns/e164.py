@@ -16,14 +16,17 @@
 """DNS E.164 helpers
 
 @var public_enum_domain: The DNS public ENUM domain, e164.arpa.
-@type public_enum_domain: dns.name.Name object
+@type public_enum_domain: thirdparty.dns.name.Name object
 """
+
 
 import thirdparty.dns.exception
 import thirdparty.dns.name
 import thirdparty.dns.resolver
+from ._compat import string_types
 
 public_enum_domain = thirdparty.dns.name.from_text('e164.arpa.')
+
 
 def from_e164(text, origin=public_enum_domain):
     """Convert an E.164 number in textual form into a Name object whose
@@ -32,34 +35,36 @@ def from_e164(text, origin=public_enum_domain):
     @type text: str
     @param origin: The domain in which the number should be constructed.
     The default is e164.arpa.
-    @type origin: dns.name.Name object or None
-    @rtype: dns.name.Name object
+    @type origin: thirdparty.dns.name.Name object or None
+    @rtype: thirdparty.dns.name.Name object
     """
     parts = [d for d in text if d.isdigit()]
     parts.reverse()
-    return dns.name.from_text('.'.join(parts), origin=origin)
+    return thirdparty.dns.name.from_text('.'.join(parts), origin=origin)
+
 
 def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
     """Convert an ENUM domain name into an E.164 number.
     @param name: the ENUM domain name.
-    @type name: dns.name.Name object.
+    @type name: thirdparty.dns.name.Name object.
     @param origin: A domain containing the ENUM domain name.  The
     name is relativized to this domain before being converted to text.
-    @type origin: dns.name.Name object or None
+    @type origin: thirdparty.dns.name.Name object or None
     @param want_plus_prefix: if True, add a '+' to the beginning of the
     returned number.
     @rtype: str
     """
-    if not origin is None:
+    if origin is not None:
         name = name.relativize(origin)
     dlabels = [d for d in name.labels if (d.isdigit() and len(d) == 1)]
     if len(dlabels) != len(name.labels):
-        raise dns.exception.SyntaxError('non-digit labels in ENUM domain name')
+        raise thirdparty.dns.exception.SyntaxError('non-digit labels in ENUM domain name')
     dlabels.reverse()
-    text = ''.join(dlabels)
+    text = b''.join(dlabels)
     if want_plus_prefix:
-        text = '+' + text
+        text = b'+' + text
     return text
+
 
 def query(number, domains, resolver=None):
     """Look for NAPTR RRs for the specified number in the specified domains.
@@ -69,11 +74,11 @@ def query(number, domains, resolver=None):
     if resolver is None:
         resolver = thirdparty.dns.resolver.get_default_resolver()
     for domain in domains:
-        if isinstance(domain, (str, unicode)):
+        if isinstance(domain, string_types):
             domain = thirdparty.dns.name.from_text(domain)
         qname = thirdparty.dns.e164.from_e164(number, domain)
         try:
             return resolver.query(qname, 'NAPTR')
-        except dns.resolver.NXDOMAIN:
+        except thirdparty.dns.resolver.NXDOMAIN:
             pass
-    raise dns.resolver.NXDOMAIN
+    raise thirdparty.dns.resolver.NXDOMAIN

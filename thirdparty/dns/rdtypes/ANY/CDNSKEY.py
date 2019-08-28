@@ -1,5 +1,3 @@
-# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 # Copyright (C) 2004-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -15,13 +13,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.dnskeybase
-from dns.rdtypes.dnskeybase import flags_to_text_set, flags_from_text_set
+import thirdparty.dns.rdtypes.dnskeybase
+from thirdparty.dns.rdtypes.dnskeybase import flags_to_text_set, flags_from_text_set
 
 
 __all__ = ['flags_to_text_set', 'flags_from_text_set']
 
 
-class CDNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):
+class CDNSKEY(thirdparty.dns.rdtypes.dnskeybase.DNSKEYBase):
 
     """CDNSKEY record"""

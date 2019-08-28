@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.nsbase
 
+
 class PTR(thirdparty.dns.rdtypes.nsbase.NSBase):
+
     """PTR record"""
-    pass

@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.mxbase
 
+
 class RT(thirdparty.dns.rdtypes.mxbase.UncompressedDowncasingMX):
+
     """RT record"""
-    pass

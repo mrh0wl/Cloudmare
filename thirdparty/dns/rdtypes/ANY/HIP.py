@@ -13,15 +13,17 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
-import string
 import struct
+import base64
+import binascii
 
 import thirdparty.dns.exception
 import thirdparty.dns.rdata
 import thirdparty.dns.rdatatype
 
+
 class HIP(thirdparty.dns.rdata.Rdata):
+
     """HIP record
 
     @ivar hit: the host identity tag
@@ -31,7 +33,7 @@ class HIP(thirdparty.dns.rdata.Rdata):
     @ivar key: the public key
     @type key: string
     @ivar servers: the rendezvous servers
-    @type servers: list of dns.name.Name objects
+    @type servers: list of thirdparty.dns.name.Name objects
     @see: RFC 5205"""
 
     __slots__ = ['hit', 'algorithm', 'key', 'servers']
@@ -44,22 +46,23 @@ class HIP(thirdparty.dns.rdata.Rdata):
         self.servers = servers
 
     def to_text(self, origin=None, relativize=True, **kw):
-        hit = self.hit.encode('hex-codec')
-        key = self.key.encode('base64-codec').replace('\n', '')
-        text = ''
+        hit = binascii.hexlify(self.hit).decode()
+        key = base64.b64encode(self.key).replace(b'\n', b'').decode()
+        text = u''
         servers = []
         for server in self.servers:
-            servers.append(str(server.choose_relativity(origin, relativize)))
+            servers.append(server.choose_relativity(origin, relativize))
         if len(servers) > 0:
-            text += (' ' + ' '.join(servers))
-        return '%u %s %s%s' % (self.algorithm, hit, key, text)
+            text += (u' ' + u' '.join(map(lambda x: x.to_unicode(), servers)))
+        return u'%u %s %s%s' % (self.algorithm, hit, key, text)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         algorithm = tok.get_uint8()
-        hit = tok.get_string().decode('hex-codec')
+        hit = binascii.unhexlify(tok.get_string().encode())
         if len(hit) > 255:
-            raise dns.exception.SyntaxError("HIT too long")
-        key = tok.get_string().decode('base64-codec')
+            raise thirdparty.dns.exception.SyntaxError("HIT too long")
+        key = base64.b64decode(tok.get_string().encode())
         servers = []
         while 1:
             token = tok.get()
@@ -70,9 +73,7 @@ class HIP(thirdparty.dns.rdata.Rdata):
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         lh = len(self.hit)
         lk = len(self.key)
         file.write(struct.pack("!BBH", lh, self.algorithm, lk))
@@ -81,15 +82,16 @@ class HIP(thirdparty.dns.rdata.Rdata):
         for server in self.servers:
             server.to_wire(file, None, origin)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (lh, algorithm, lk) = struct.unpack('!BBH',
-                                            wire[current : current + 4])
+                                            wire[current: current + 4])
         current += 4
         rdlen -= 4
-        hit = wire[current : current + lh].unwrap()
+        hit = wire[current: current + lh].unwrap()
         current += lh
         rdlen -= lh
-        key = wire[current : current + lk].unwrap()
+        key = wire[current: current + lk].unwrap()
         current += lk
         rdlen -= lk
         servers = []
@@ -98,43 +100,14 @@ class HIP(thirdparty.dns.rdata.Rdata):
                                                  current)
             current += cused
             rdlen -= cused
-            if not origin is None:
+            if origin is not None:
                 server = server.relativize(origin)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         servers = []
         for server in self.servers:
             server = server.choose_relativity(origin, relativize)
             servers.append(server)
         self.servers = servers
-
-    def _cmp(self, other):
-        b1 = cStringIO.StringIO()
-        lh = len(self.hit)
-        lk = len(self.key)
-        b1.write(struct.pack("!BBH", lh, self.algorithm, lk))
-        b1.write(self.hit)
-        b1.write(self.key)
-        b2 = cStringIO.StringIO()
-        lh = len(other.hit)
-        lk = len(other.key)
-        b2.write(struct.pack("!BBH", lh, other.algorithm, lk))
-        b2.write(other.hit)
-        b2.write(other.key)
-        v = cmp(b1.getvalue(), b2.getvalue())
-        if v != 0:
-            return v
-        ls = len(self.servers)
-        lo = len(other.servers)
-        count = min(ls, lo)
-        i = 0
-        while i < count:
-            v = cmp(self.servers[i], other.servers[i])
-            if v != 0:
-                return v
-            i += 1
-        return ls - lo

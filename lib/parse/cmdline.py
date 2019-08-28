@@ -14,12 +14,12 @@ def parse_error(errmsg):
 	exit(1)
 
 def parse_args():
-	logotype()
-	parser = argparse.ArgumentParser(epilog="\tExample: \r\npython " + sys.argv[0] + " [DOMAIN] -s")
+	parser = argparse.ArgumentParser(epilog="\tExample: \r\npython " + sys.argv[0] + " [DOMAIN] --subdomain")
 	parser.error = parse_error
 	parser._optionals.title = "OPTIONS"
 	parser.add_argument("-v", '--version', action='version', version=NAME + VERSION + ' | '+ COPYRIGHT)
 	parser.add_argument("domain", metavar="[domain]",help="domain to scan")
 	parser.add_argument("-ns", "--nameserver", help="scan with nameserver", action='store', dest='ns', default=None)
 	parser.add_argument("--subdomain", help="search misconfigured subdomain", action="store_true", default=False)
+	parser.add_argument("-o","--output", help="save results in a file", dest='file', default=None)
 	return parser.parse_args()

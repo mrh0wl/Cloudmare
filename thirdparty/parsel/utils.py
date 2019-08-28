@@ -1,6 +1,6 @@
 import re
 import six
-from w3lib.html import replace_entities as w3lib_replace_entities
+from thirdparty.w3lib.html import replace_entities as w3lib_replace_entities
 
 
 def flatten(x):

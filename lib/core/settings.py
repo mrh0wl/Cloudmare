@@ -16,9 +16,16 @@ import sys
 
 from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
 from pip._internal import main as pipmain
+import thirdparty.urllib3 as urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+config = {
+	'http_timeout_seconds': 5,
+	'response_similarity_threshold': 0.9
+}
 
 # version (<major>.<minor>.<month>.<day>)
-VERSION = "1.6.7.29"
+VERSION = "1.7.8.28"
 DESCRIPTION = "Automatic CloudProxy and reverse proxy bypass tool"
 ISSUES_PAGE = "https://github.com/MrH0wl/Cloudmare/issues/new"
 GIT_REPOSITORY = "https://github.com/MrH0wl/Cloudmare.git"
@@ -39,7 +46,7 @@ def logotype():
 ''' + green + DESCRIPTION + green + "\n##################################################"+ white + '\n')
 
 # osclear shortcut
-def osclear(logotype, unknown):
+def osclear(unknown):
     isOs = sys.platform.lower()
     if isOs == 'win32':
         os.system('cls')
@@ -48,7 +55,8 @@ def osclear(logotype, unknown):
     else:
       print(unknown)
       sys.exit()
-    print (logotype)
+    logotype()
+    print (yellow + "\n~ Thanks for using this script! <3")
 
 # question shortcut
 def quest(question, doY, doN):

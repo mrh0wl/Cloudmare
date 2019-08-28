@@ -188,7 +188,7 @@ class Selector(object):
 
         if text is not None:
             if not isinstance(text, six.text_type):
-                raise TypeError("text argument should be of type %s" % six.text_type)
+                raise TypeError("text argument should be of type %s" % (six.text_type))
             root = self._get_root(text, base_url)
         elif root is None:
             raise ValueError("Selector needs either text or root argument")

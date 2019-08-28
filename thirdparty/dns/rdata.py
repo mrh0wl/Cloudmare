@@ -19,13 +19,16 @@
 the module which implements that type.
 @type _rdata_modules: dict
 @var _module_prefix: The prefix to use when forming modules names.  The
-default is 'dns.rdtypes'.  Changing this value will break the library.
+default is 'thirdparty.dns.rdtypes'.  Changing this value will break the library.
 @type _module_prefix: string
 @var _hex_chunk: At most this many octets that will be represented in each
 chunk of hexstring that _hexify() produces before whitespace occurs.
 @type _hex_chunk: int"""
 
-from io import StringIO
+from io import BytesIO
+import base64
+import binascii
+import struct
 
 import thirdparty.dns.exception
 import thirdparty.dns.name
@@ -33,63 +36,50 @@ import thirdparty.dns.rdataclass
 import thirdparty.dns.rdatatype
 import thirdparty.dns.tokenizer
 import thirdparty.dns.wiredata
+from ._compat import xrange, string_types, text_type
 
 _hex_chunksize = 32
 
-def _hexify(data, chunksize=None):
+
+def _hexify(data, chunksize=_hex_chunksize):
     """Convert a binary string into its hex encoding, broken up into chunks
     of I{chunksize} characters separated by a space.
 
     @param data: the binary string
     @type data: string
-    @param chunksize: the chunk size.  Default is L{dns.rdata._hex_chunksize}
+    @param chunksize: the chunk size.  Default is L{thirdparty.dns.rdata._hex_chunksize}
     @rtype: string
     """
 
-    if chunksize is None:
-        chunksize = _hex_chunksize
-    hex = data.encode('hex_codec')
-    l = len(hex)
-    if l > chunksize:
-        chunks = []
-        i = 0
-        while i < l:
-            chunks.append(hex[i : i + chunksize])
-            i += chunksize
-        hex = ' '.join(chunks)
-    return hex
+    line = binascii.hexlify(data)
+    return b' '.join([line[i:i + chunksize]
+                      for i
+                      in range(0, len(line), chunksize)]).decode()
 
 _base64_chunksize = 32
 
-def _base64ify(data, chunksize=None):
+
+def _base64ify(data, chunksize=_base64_chunksize):
     """Convert a binary string into its base64 encoding, broken up into chunks
     of I{chunksize} characters separated by a space.
 
     @param data: the binary string
     @type data: string
     @param chunksize: the chunk size.  Default is
-    L{dns.rdata._base64_chunksize}
+    L{thirdparty.dns.rdata._base64_chunksize}
     @rtype: string
     """
 
-    if chunksize is None:
-        chunksize = _base64_chunksize
-    b64 = data.encode('base64_codec')
-    b64 = b64.replace('\n', '')
-    l = len(b64)
-    if l > chunksize:
-        chunks = []
-        i = 0
-        while i < l:
-            chunks.append(b64[i : i + chunksize])
-            i += chunksize
-        b64 = ' '.join(chunks)
-    return b64
+    line = base64.b64encode(data)
+    return b' '.join([line[i:i + chunksize]
+                      for i
+                      in range(0, len(line), chunksize)]).decode()
 
 __escaped = {
-    '"' : True,
-    '\\' : True,
-    }
+    '"': True,
+    '\\': True,
+}
+
 
 def _escapify(qstring):
     """Escape the characters in a quoted string which need it.
@@ -100,15 +90,22 @@ def _escapify(qstring):
     @rtype: string
     """
 
+    if isinstance(qstring, text_type):
+        qstring = qstring.encode()
+    if not isinstance(qstring, bytearray):
+        qstring = bytearray(qstring)
+
     text = ''
     for c in qstring:
-        if c in __escaped:
-            text += '\\' + c
-        elif ord(c) >= 0x20 and ord(c) < 0x7F:
-            text += c
+        packed = struct.pack('!B', c).decode()
+        if packed in __escaped:
+            text += '\\' + packed
+        elif c >= 0x20 and c < 0x7F:
+            text += packed
         else:
-            text += '\\%03d' % ord(c)
+            text += '\\%03d' % c
     return text
+
 
 def _truncate_bitmap(what):
     """Determine the index of greatest byte that isn't all zeros, and
@@ -120,11 +117,13 @@ def _truncate_bitmap(what):
     """
 
     for i in xrange(len(what) - 1, -1, -1):
-        if what[i] != '\x00':
+        if what[i] != 0:
             break
-    return ''.join(what[0 : i + 1])
+    return what[0: i + 1]
+
 
 class Rdata(object):
+
     """Base class for all DNS rdata types.
     """
 
@@ -144,13 +143,13 @@ class Rdata(object):
     def covers(self):
         """DNS SIG/RRSIG rdatas apply to a specific type; this type is
         returned by the covers() function.  If the rdata type is not
-        SIG or RRSIG, dns.rdatatype.NONE is returned.  This is useful when
+        SIG or RRSIG, thirdparty.dns.rdatatype.NONE is returned.  This is useful when
         creating rdatasets, allowing the rdataset to contain only RRSIGs
         of a particular type, e.g. RRSIG(NS).
         @rtype: int
         """
 
-        return dns.rdatatype.NONE
+        return thirdparty.dns.rdatatype.NONE
 
     def extended_rdatatype(self):
         """Return a 32-bit type value, the least significant 16 bits of
@@ -167,17 +166,17 @@ class Rdata(object):
         """
         raise NotImplementedError
 
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         """Convert an rdata to wire format.
         @rtype: string
         """
 
         raise NotImplementedError
 
-    def to_digestable(self, origin = None):
+    def to_digestable(self, origin=None):
         """Convert rdata to a format suitable for digesting in hashes.  This
         is also the DNSSEC canonical form."""
-        f = cStringIO.StringIO()
+        f = BytesIO()
         self.to_wire(f, None, origin)
         return f.getvalue()
 
@@ -187,16 +186,16 @@ class Rdata(object):
         it is a good idea to call validate() when you are done making
         changes.
         """
-        dns.rdata.from_text(self.rdclass, self.rdtype, self.to_text())
+        thirdparty.dns.rdata.from_text(self.rdclass, self.rdtype, self.to_text())
 
     def __repr__(self):
         covers = self.covers()
         if covers == thirdparty.dns.rdatatype.NONE:
             ctext = ''
         else:
-            ctext = '(' + dns.rdatatype.to_text(covers) + ')'
-        return '<DNS ' + dns.rdataclass.to_text(self.rdclass) + ' ' + \
-               dns.rdatatype.to_text(self.rdtype) + ctext + ' rdata: ' + \
+            ctext = '(' + thirdparty.dns.rdatatype.to_text(covers) + ')'
+        return '<DNS ' + thirdparty.dns.rdataclass.to_text(self.rdclass) + ' ' + \
+               thirdparty.dns.rdatatype.to_text(self.rdtype) + ctext + ' rdata: ' + \
                str(self) + '>'
 
     def __str__(self):
@@ -207,70 +206,59 @@ class Rdata(object):
         rdclass.  Return < 0 if self < other in the DNSSEC ordering,
         0 if self == other, and > 0 if self > other.
         """
+        our = self.to_digestable(thirdparty.dns.name.root)
+        their = other.to_digestable(thirdparty.dns.name.root)
+        if our == their:
+            return 0
+        if our > their:
+            return 1
 
-        raise NotImplementedError
+        return -1
 
     def __eq__(self, other):
         if not isinstance(other, Rdata):
             return False
-        if self.rdclass != other.rdclass or \
-           self.rdtype != other.rdtype:
+        if self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return False
         return self._cmp(other) == 0
 
     def __ne__(self, other):
         if not isinstance(other, Rdata):
             return True
-        if self.rdclass != other.rdclass or \
-           self.rdtype != other.rdtype:
+        if self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return True
         return self._cmp(other) != 0
 
     def __lt__(self, other):
         if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+                self.rdclass != other.rdclass or self.rdtype != other.rdtype:
+
             return NotImplemented
         return self._cmp(other) < 0
 
     def __le__(self, other):
         if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+                self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return NotImplemented
         return self._cmp(other) <= 0
 
     def __ge__(self, other):
         if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+                self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return NotImplemented
         return self._cmp(other) >= 0
 
     def __gt__(self, other):
         if not isinstance(other, Rdata) or \
-               self.rdclass != other.rdclass or \
-               self.rdtype != other.rdtype:
+                self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return NotImplemented
         return self._cmp(other) > 0
 
     def __hash__(self):
         return hash(self.to_digestable(thirdparty.dns.name.root))
 
-    def _wire_cmp(self, other):
-        # A number of types compare rdata in wire form, so we provide
-        # the method here instead of duplicating it.
-        #
-        # We specifiy an arbitrary origin of '.' when doing the
-        # comparison, since the rdata may have relative names and we
-        # can't convert a relative name to wire without an origin.
-        b1 = cStringIO.StringIO()
-        self.to_wire(b1, None, dns.name.root)
-        b2 = cStringIO.StringIO()
-        other.to_wire(b2, None, dns.name.root)
-        return cmp(b1.getvalue(), b2.getvalue())
-
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         """Build an rdata object from text format.
 
         @param rdclass: The rdata class
@@ -278,19 +266,18 @@ class Rdata(object):
         @param rdtype: The rdata type
         @type rdtype: int
         @param tok: The tokenizer
-        @type tok: dns.tokenizer.Tokenizer
+        @type tok: thirdparty.dns.tokenizer.Tokenizer
         @param origin: The origin to use for relative names
-        @type origin: dns.name.Name
+        @type origin: thirdparty.dns.name.Name
         @param relativize: should names be relativized?
         @type relativize: bool
-        @rtype: dns.rdata.Rdata instance
+        @rtype: thirdparty.dns.rdata.Rdata instance
         """
 
         raise NotImplementedError
 
-    from_text = classmethod(from_text)
-
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         """Build an rdata object from wire format
 
         @param rdclass: The rdata class
@@ -299,20 +286,18 @@ class Rdata(object):
         @type rdtype: int
         @param wire: The wire-format message
         @type wire: string
-        @param current: The offet in wire of the beginning of the rdata.
+        @param current: The offset in wire of the beginning of the rdata.
         @type current: int
         @param rdlen: The length of the wire-format rdata
         @type rdlen: int
         @param origin: The origin to use for relative names
-        @type origin: dns.name.Name
-        @rtype: dns.rdata.Rdata instance
+        @type origin: thirdparty.dns.name.Name
+        @rtype: thirdparty.dns.rdata.Rdata instance
         """
 
         raise NotImplementedError
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         """Convert any domain names in the rdata to the specified
         relativization.
         """
@@ -321,6 +306,7 @@ class Rdata(object):
 
 
 class GenericRdata(Rdata):
+
     """Generate Rdata Class
 
     This class is used for rdata types for which we have no better
@@ -336,38 +322,36 @@ class GenericRdata(Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         return r'\# %d ' % len(self.data) + _hexify(self.data)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         token = tok.get()
         if not token.is_identifier() or token.value != '\#':
-            raise dns.exception.SyntaxError(r'generic rdata does not start with \#')
+            raise thirdparty.dns.exception.SyntaxError(
+                r'generic rdata does not start with \#')
         length = tok.get_int()
         chunks = []
         while 1:
             token = tok.get()
             if token.is_eol_or_eof():
                 break
-            chunks.append(token.value)
-        hex = ''.join(chunks)
-        data = hex.decode('hex_codec')
+            chunks.append(token.value.encode())
+        hex = b''.join(chunks)
+        data = binascii.unhexlify(hex)
         if len(data) != length:
-            raise dns.exception.SyntaxError('generic rdata hex data has wrong length')
+            raise thirdparty.dns.exception.SyntaxError(
+                'generic rdata hex data has wrong length')
         return cls(rdclass, rdtype, data)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         file.write(self.data)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        return cls(rdclass, rdtype, wire[current : current + rdlen])
-
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return cmp(self.data, other.data)
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        return cls(rdclass, rdtype, wire[current: current + rdlen])
 
 _rdata_modules = {}
-_module_prefix = 'dns.rdtypes'
+_module_prefix = 'thirdparty.dns.rdtypes'
+
 
 def get_rdata_class(rdclass, rdtype):
 
@@ -402,7 +386,8 @@ def get_rdata_class(rdclass, rdtype):
         cls = GenericRdata
     return cls
 
-def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
+
+def from_text(rdclass, rdtype, tok, origin=None, relativize=True):
     """Build an rdata object from text format.
 
     This function attempts to dynamically load a class which
@@ -421,14 +406,14 @@ def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
     @param rdtype: The rdata type
     @type rdtype: int
     @param tok: The tokenizer or input text
-    @type tok: dns.tokenizer.Tokenizer or string
+    @type tok: thirdparty.dns.tokenizer.Tokenizer or string
     @param origin: The origin to use for relative names
-    @type origin: dns.name.Name
+    @type origin: thirdparty.dns.name.Name
     @param relativize: Should names be relativized?
     @type relativize: bool
-    @rtype: dns.rdata.Rdata instance"""
+    @rtype: thirdparty.dns.rdata.Rdata instance"""
 
-    if isinstance(tok, str):
+    if isinstance(tok, string_types):
         tok = thirdparty.dns.tokenizer.Tokenizer(tok)
     cls = get_rdata_class(rdclass, rdtype)
     if cls != GenericRdata:
@@ -448,7 +433,8 @@ def from_text(rdclass, rdtype, tok, origin = None, relativize = True):
                              origin)
     return cls.from_text(rdclass, rdtype, tok, origin, relativize)
 
-def from_wire(rdclass, rdtype, wire, current, rdlen, origin = None):
+
+def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
     """Build an rdata object from wire format
 
     This function attempts to dynamically load a class which
@@ -465,13 +451,13 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin = None):
     @type rdtype: int
     @param wire: The wire-format message
     @type wire: string
-    @param current: The offet in wire of the beginning of the rdata.
+    @param current: The offset in wire of the beginning of the rdata.
     @type current: int
     @param rdlen: The length of the wire-format rdata
     @type rdlen: int
     @param origin: The origin to use for relative names
-    @type origin: dns.name.Name
-    @rtype: dns.rdata.Rdata instance"""
+    @type origin: thirdparty.dns.name.Name
+    @rtype: thirdparty.dns.rdata.Rdata instance"""
 
     wire = thirdparty.dns.wiredata.maybe_wrap(wire)
     cls = get_rdata_class(rdclass, rdtype)

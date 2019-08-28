@@ -1,5 +1,3 @@
-# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 # Copyright (C) 2004-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -18,9 +16,9 @@
 import base64
 import struct
 
-import dns.exception
-import dns.dnssec
-import dns.rdata
+import thirdparty.dns.exception
+import thirdparty.dns.dnssec
+import thirdparty.dns.rdata
 
 # wildcard import
 __all__ = ["SEP", "REVOKE", "ZONE",
@@ -40,7 +38,7 @@ _flag_by_text = {
 # We construct the inverse mapping programmatically to ensure that we
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
-_flag_by_value = {y: x for x, y in _flag_by_text.items()}
+_flag_by_value = dict((y, x) for x, y in _flag_by_text.items())
 
 
 def flags_to_text_set(flags):
@@ -73,7 +71,7 @@ def flags_from_text_set(texts_set):
     return flags
 
 
-class DNSKEYBase(dns.rdata.Rdata):
+class DNSKEYBase(thirdparty.dns.rdata.Rdata):
 
     """Base class for rdata that is like a DNSKEY record
 
@@ -97,20 +95,20 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
-                                dns.rdata._base64ify(self.key))
+                                thirdparty.dns.rdata._base64ify(self.key))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         flags = tok.get_uint16()
         protocol = tok.get_uint8()
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = thirdparty.dns.dnssec.algorithm_from_text(tok.get_string())
         chunks = []
         while 1:
             t = tok.get().unescape()
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():
-                raise dns.exception.SyntaxError
+                raise thirdparty.dns.exception.SyntaxError
             chunks.append(t.value.encode())
         b64 = b''.join(chunks)
         key = base64.b64decode(b64)
@@ -124,7 +122,7 @@ class DNSKEYBase(dns.rdata.Rdata):
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         if rdlen < 4:
-            raise dns.exception.FormError
+            raise thirdparty.dns.exception.FormError
         header = struct.unpack('!HBB', wire[current: current + 4])
         current += 4
         rdlen -= 4

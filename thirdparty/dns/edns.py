@@ -17,126 +17,134 @@
 
 NSID = 3
 
+
 class Option(object):
-	"""Base class for all EDNS option types.
-	"""
 
-	def __init__(self, otype):
-		"""Initialize an option.
-		@param otype: The rdata type
-		@type otype: int
-		"""
-		self.otype = otype
+    """Base class for all EDNS option types.
+    """
 
-	def to_wire(self, file):
-		"""Convert an option to wire format.
-		"""
-		raise NotImplementedError
+    def __init__(self, otype):
+        """Initialize an option.
+        @param otype: The rdata type
+        @type otype: int
+        """
+        self.otype = otype
 
-	def from_wire(cls, otype, wire, current, olen):
-		"""Build an EDNS option object from wire format
+    def to_wire(self, file):
+        """Convert an option to wire format.
+        """
+        raise NotImplementedError
 
-		@param otype: The option type
-		@type otype: int
-		@param wire: The wire-format message
-		@type wire: string
-		@param current: The offet in wire of the beginning of the rdata.
-		@type current: int
-		@param olen: The length of the wire-format option data
-		@type olen: int
-		@rtype: dns.edns.Option instance"""
-		raise NotImplementedError
+    @classmethod
+    def from_wire(cls, otype, wire, current, olen):
+        """Build an EDNS option object from wire format
 
-	from_wire = classmethod(from_wire)
+        @param otype: The option type
+        @type otype: int
+        @param wire: The wire-format message
+        @type wire: string
+        @param current: The offset in wire of the beginning of the rdata.
+        @type current: int
+        @param olen: The length of the wire-format option data
+        @type olen: int
+        @rtype: thirdparty.dns.ethirdparty.dns.Option instance"""
+        raise NotImplementedError
 
-	def _cmp(self, other):
-		"""Compare an EDNS option with another option of the same type.
-		Return < 0 if self < other, 0 if self == other, and > 0 if self > other.
-		"""
-		raise NotImplementedError
+    def _cmp(self, other):
+        """Compare an EDNS option with another option of the same type.
+        Return < 0 if self < other, 0 if self == other,
+        and > 0 if self > other.
+        """
+        raise NotImplementedError
 
-	def __eq__(self, other):
-		if not isinstance(other, Option):
-			return False
-		if self.otype != other.otype:
-			return False
-		return self._cmp(other) == 0
+    def __eq__(self, other):
+        if not isinstance(other, Option):
+            return False
+        if self.otype != other.otype:
+            return False
+        return self._cmp(other) == 0
 
-	def __ne__(self, other):
-		if not isinstance(other, Option):
-			return False
-		if self.otype != other.otype:
-			return False
-		return self._cmp(other) != 0
+    def __ne__(self, other):
+        if not isinstance(other, Option):
+            return False
+        if self.otype != other.otype:
+            return False
+        return self._cmp(other) != 0
 
-	def __lt__(self, other):
-		if not isinstance(other, Option) or \
-			   self.otype != other.otype:
-			return NotImplemented
-		return self._cmp(other) < 0
+    def __lt__(self, other):
+        if not isinstance(other, Option) or \
+                self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) < 0
 
-	def __le__(self, other):
-		if not isinstance(other, Option) or \
-			   self.otype != other.otype:
-			return NotImplemented
-		return self._cmp(other) <= 0
+    def __le__(self, other):
+        if not isinstance(other, Option) or \
+                self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) <= 0
 
-	def __ge__(self, other):
-		if not isinstance(other, Option) or \
-			   self.otype != other.otype:
-			return NotImplemented
-		return self._cmp(other) >= 0
+    def __ge__(self, other):
+        if not isinstance(other, Option) or \
+                self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) >= 0
 
-	def __gt__(self, other):
-		if not isinstance(other, Option) or \
-			   self.otype != other.otype:
-			return NotImplemented
-		return self._cmp(other) > 0
+    def __gt__(self, other):
+        if not isinstance(other, Option) or \
+                self.otype != other.otype:
+            return NotImplemented
+        return self._cmp(other) > 0
 
 
 class GenericOption(Option):
-	"""Generate Rdata Class
 
-	This class is used for EDNS option types for which we have no better
-	implementation.
-	"""
+    """Generate Rdata Class
 
-	def __init__(self, otype, data):
-		super(GenericOption, self).__init__(otype)
-		self.data = data
+    This class is used for EDNS option types for which we have no better
+    implementation.
+    """
 
-	def to_wire(self, file):
-		file.write(self.data)
+    def __init__(self, otype, data):
+        super(GenericOption, self).__init__(otype)
+        self.data = data
 
-	def from_wire(cls, otype, wire, current, olen):
-		return cls(otype, wire[current : current + olen])
+    def to_wire(self, file):
+        file.write(self.data)
 
-	from_wire = classmethod(from_wire)
+    @classmethod
+    def from_wire(cls, otype, wire, current, olen):
+        return cls(otype, wire[current: current + olen])
 
-	def _cmp(self, other):
-		return cmp(self.data, other.data)
+    def _cmp(self, other):
+        if self.data == other.data:
+            return 0
+        if self.data > other.data:
+            return 1
+        return -1
 
 _type_to_class = {
 }
 
+
 def get_option_class(otype):
-	cls = _type_to_class.get(otype)
-	if cls is None:
-		cls = GenericOption
-	return cls
+    cls = _type_to_class.get(otype)
+    if cls is None:
+        cls = GenericOption
+    return cls
+
 
 def option_from_wire(otype, wire, current, olen):
-	"""Build an EDNS option object from wire format
+    """Build an EDNS option object from wire format
 
-	@param otype: The option type
-	@type otype: int
-	@param wire: The wire-format message
-	@type wire: string
-	@param current: The offet in wire of the beginning of the rdata.
-	@type current: int
-	@param olen: The length of the wire-format option data
-	@type olen: int
-	@rtype: dns.edns.Option instance"""
+    @param otype: The option type
+    @type otype: int
+    @param wire: The wire-format message
+    @type wire: string
+    @param current: The offset in wire of the beginning of the rdata.
+    @type current: int
+    @param olen: The length of the wire-format option data
+    @type olen: int
+    @rtype: thirdparty.dns.ethirdparty.dns.Option instance"""
 
-	cls = get_option_class(otype)
-	return cls.from_wire(otype, wire, current, olen)
+    cls = get_option_class(otype)
+    return cls.from_wire(otype, wire, current, olen)

@@ -16,30 +16,20 @@
 """DNS Result Codes."""
 
 import thirdparty.dns.exception
+from ._compat import long
 
-#: No error
+
 NOERROR = 0
-#: Form error
 FORMERR = 1
-#: Server failure
 SERVFAIL = 2
-#: Name does not exist ("Name Error" in RFC 1025 terminology).
 NXDOMAIN = 3
-#: Not implemented
 NOTIMP = 4
-#: Refused
 REFUSED = 5
-#: Name exists.
 YXDOMAIN = 6
-#: RRset exists.
 YXRRSET = 7
-#: RRset does not exist.
 NXRRSET = 8
-#: Not authoritative.
 NOTAUTH = 9
-#: Name not in zone.
 NOTZONE = 10
-#: Bad EDNS version.
 BADVERS = 16
 
 _by_text = {
@@ -61,18 +51,21 @@ _by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be a true inverse.
 
-_by_value = {y: x for x, y in _by_text.items()}
+_by_value = dict((y, x) for x, y in _by_text.items())
 
 
 class UnknownRcode(thirdparty.dns.exception.DNSException):
+
     """A DNS rcode is unknown."""
 
 
 def from_text(text):
     """Convert text into an rcode.
-    *text*, a ``text``, the textual rcode or an integer in textual form.
-    Raises ``dns.rcode.UnknownRcode`` if the rcode mnemonic is unknown.
-    Returns an ``int``.
+
+    @param text: the textual rcode
+    @type text: string
+    @raises UnknownRcode: the rcode is unknown
+    @rtype: int
     """
 
     if text.isdigit():
@@ -87,10 +80,13 @@ def from_text(text):
 
 def from_flags(flags, ednsflags):
     """Return the rcode value encoded by flags and ednsflags.
-    *flags*, an ``int``, the DNS flags field.
-    *ednsflags*, an ``int``, the EDNS flags field.
-    Raises ``ValueError`` if rcode is < 0 or > 4095
-    Returns an ``int``.
+
+    @param flags: the DNS flags
+    @type flags: int
+    @param ednsflags: the EDNS flags
+    @type ednsflags: int
+    @raises ValueError: rcode is < 0 or > 4095
+    @rtype: int
     """
 
     value = (flags & 0x000f) | ((ednsflags >> 20) & 0xff0)
@@ -101,27 +97,28 @@ def from_flags(flags, ednsflags):
 
 def to_flags(value):
     """Return a (flags, ednsflags) tuple which encodes the rcode.
-    *value*, an ``int``, the rcode.
-    Raises ``ValueError`` if rcode is < 0 or > 4095.
-    Returns an ``(int, int)`` tuple.
+
+    @param value: the rcode
+    @type value: int
+    @raises ValueError: rcode is < 0 or > 4095
+    @rtype: (int, int) tuple
     """
 
     if value < 0 or value > 4095:
         raise ValueError('rcode must be >= 0 and <= 4095')
     v = value & 0xf
-    ev = (value & 0xff0) << 20
+    ev = long(value & 0xff0) << 20
     return (v, ev)
 
 
 def to_text(value):
     """Convert rcode into text.
-    *value*, and ``int``, the rcode.
-    Raises ``ValueError`` if rcode is < 0 or > 4095.
-    Returns a ``text``.
+
+    @param value: the rcode
+    @type value: int
+    @rtype: string
     """
 
-    if value < 0 or value > 4095:
-        raise ValueError('rcode must be >= 0 and <= 4095')
     text = _by_value.get(value)
     if text is None:
         text = str(value)

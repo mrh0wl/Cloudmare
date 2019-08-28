@@ -8,8 +8,8 @@ import re
 import six
 from six import moves
 
-from w3lib.util import to_bytes, to_unicode
-from w3lib.url import safe_url_string
+from thirdparty.w3lib.util import to_bytes, to_unicode
+from thirdparty.w3lib.url import safe_url_string
 
 _ent_re = re.compile(r'&((?P<named>[a-z\d]+)|#(?P<dec>\d+)|#x(?P<hex>[a-f\d]+))(?P<semicolon>;?)', re.IGNORECASE)
 _tag_re = re.compile(r'<[a-zA-Z\/!].*?>', re.DOTALL)

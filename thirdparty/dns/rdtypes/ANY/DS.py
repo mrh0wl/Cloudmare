@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.dsbase
 
+
 class DS(thirdparty.dns.rdtypes.dsbase.DSBase):
+
     """DS record"""
-    pass

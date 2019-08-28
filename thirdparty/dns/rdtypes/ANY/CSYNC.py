@@ -1,5 +1,3 @@
-# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 # Copyright (C) 2004-2007, 2009-2011, 2016 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -17,12 +15,13 @@
 
 import struct
 
-import dns.exception
-import dns.rdata
-import dns.rdatatype
-import dns.name
+import thirdparty.dns.exception
+import thirdparty.dns.rdata
+import thirdparty.dns.rdatatype
+import thirdparty.dns.name
+from thirdparty.dns._compat import xrange
 
-class CSYNC(dns.rdata.Rdata):
+class CSYNC(thirdparty.dns.rdata.Rdata):
 
     """CSYNC record
 
@@ -45,10 +44,11 @@ class CSYNC(dns.rdata.Rdata):
         text = ''
         for (window, bitmap) in self.windows:
             bits = []
-            for (i, byte) in enumerate(bitmap):
-                for j in range(0, 8):
+            for i in xrange(0, len(bitmap)):
+                byte = bitmap[i]
+                for j in xrange(0, 8):
                     if byte & (0x80 >> j):
-                        bits.append(dns.rdatatype.to_text(window * 256 +
+                        bits.append(thirdparty.dns.rdatatype.to_text(window * 256 +
                                                           i * 8 + j))
             text += (' ' + ' '.join(bits))
         return '%d %d%s' % (self.serial, self.flags, text)
@@ -62,11 +62,11 @@ class CSYNC(dns.rdata.Rdata):
             token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break
-            nrdtype = dns.rdatatype.from_text(token.value)
+            nrdtype = thirdparty.dns.rdatatype.from_text(token.value)
             if nrdtype == 0:
-                raise dns.exception.SyntaxError("CSYNC with bit 0")
+                raise thirdparty.dns.exception.SyntaxError("CSYNC with bit 0")
             if nrdtype > 65535:
-                raise dns.exception.SyntaxError("CSYNC with bit > 65535")
+                raise thirdparty.dns.exception.SyntaxError("CSYNC with bit > 65535")
             rdtypes.append(nrdtype)
         rdtypes.sort()
         window = 0
@@ -101,22 +101,22 @@ class CSYNC(dns.rdata.Rdata):
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         if rdlen < 6:
-            raise dns.exception.FormError("CSYNC too short")
+            raise thirdparty.dns.exception.FormError("CSYNC too short")
         (serial, flags) = struct.unpack("!IH", wire[current: current + 6])
         current += 6
         rdlen -= 6
         windows = []
         while rdlen > 0:
             if rdlen < 3:
-                raise dns.exception.FormError("CSYNC too short")
+                raise thirdparty.dns.exception.FormError("CSYNC too short")
             window = wire[current]
             octets = wire[current + 1]
             if octets == 0 or octets > 32:
-                raise dns.exception.FormError("bad CSYNC octets")
+                raise thirdparty.dns.exception.FormError("bad CSYNC octets")
             current += 2
             rdlen -= 2
             if rdlen < octets:
-                raise dns.exception.FormError("bad CSYNC bitmap length")
+                raise thirdparty.dns.exception.FormError("bad CSYNC bitmap length")
             bitmap = bytearray(wire[current: current + octets].unwrap())
             current += octets
             rdlen -= octets

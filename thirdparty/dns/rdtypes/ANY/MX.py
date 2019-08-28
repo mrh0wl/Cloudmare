@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.mxbase
 
+
 class MX(thirdparty.dns.rdtypes.mxbase.MXBase):
+
     """MX record"""
-    pass

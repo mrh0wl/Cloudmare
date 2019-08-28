@@ -1,5 +1,3 @@
-# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -15,9 +13,9 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.dsbase
+import thirdparty.dns.rdtypes.dsbase
 
 
-class CDS(dns.rdtypes.dsbase.DSBase):
+class CDS(thirdparty.dns.rdtypes.dsbase.DSBase):
 
     """CDS record"""

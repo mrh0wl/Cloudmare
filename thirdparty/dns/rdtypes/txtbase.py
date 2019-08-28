@@ -15,11 +15,16 @@
 
 """TXT-like base class."""
 
+import struct
+
 import thirdparty.dns.exception
 import thirdparty.dns.rdata
 import thirdparty.dns.tokenizer
+from thirdparty.dns._compat import binary_type
+
 
 class TXTBase(thirdparty.dns.rdata.Rdata):
+
     """Base class for rdata that is like a TXT record
 
     @ivar strings: the text strings
@@ -31,57 +36,56 @@ class TXTBase(thirdparty.dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, strings):
         super(TXTBase, self).__init__(rdclass, rdtype)
         if isinstance(strings, str):
-            strings = [ strings ]
+            strings = [strings]
         self.strings = strings[:]
 
     def to_text(self, origin=None, relativize=True, **kw):
         txt = ''
         prefix = ''
         for s in self.strings:
-            txt += '%s"%s"' % (prefix, dns.rdata._escapify(s))
+            txt += '%s"%s"' % (prefix, thirdparty.dns.rdata._escapify(s))
             prefix = ' '
         return txt
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         strings = []
         while 1:
             token = tok.get().unescape()
             if token.is_eol_or_eof():
                 break
             if not (token.is_quoted_string() or token.is_identifier()):
-                raise dns.exception.SyntaxError("expected a string")
+                raise thirdparty.dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
-                raise dns.exception.SyntaxError("string too long")
-            strings.append(token.value)
+                raise thirdparty.dns.exception.SyntaxError("string too long")
+            value = token.value
+            if isinstance(value, binary_type):
+                strings.append(value)
+            else:
+                strings.append(value.encode())
         if len(strings) == 0:
-            raise dns.exception.UnexpectedEnd
+            raise thirdparty.dns.exception.UnexpectedEnd
         return cls(rdclass, rdtype, strings)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         for s in self.strings:
             l = len(s)
             assert l < 256
-            byte = chr(l)
-            file.write(byte)
+            file.write(struct.pack('!B', l))
             file.write(s)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         strings = []
         while rdlen > 0:
-            l = ord(wire[current])
+            l = wire[current]
             current += 1
             rdlen -= 1
             if l > rdlen:
-                raise dns.exception.FormError
-            s = wire[current : current + l].unwrap()
+                raise thirdparty.dns.exception.FormError
+            s = wire[current: current + l].unwrap()
             current += l
             rdlen -= l
             strings.append(s)
         return cls(rdclass, rdtype, strings)
 
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        return cmp(self.strings, other.strings)

@@ -15,14 +15,15 @@
 
 """DNS TSIG support."""
 
-import hashlib
 import hmac
 import struct
+import sys
 
 import thirdparty.dns.exception
 import thirdparty.dns.hash
 import thirdparty.dns.rdataclass
 import thirdparty.dns.name
+from ._compat import long, string_types
 
 class BadTime(thirdparty.dns.exception.DNSException):
 
@@ -68,12 +69,12 @@ HMAC_SHA384 = thirdparty.dns.name.from_text("hmac-sha384")
 HMAC_SHA512 = thirdparty.dns.name.from_text("hmac-sha512")
 
 _hashes = {
-    HMAC_SHA224: hashlib.sha224,
-    HMAC_SHA256: hashlib.sha256,
-    HMAC_SHA384: hashlib.sha384,
-    HMAC_SHA512: hashlib.sha512,
-    HMAC_SHA1: hashlib.sha1,
-    HMAC_MD5: hashlib.md5,
+    HMAC_SHA224: 'SHA224',
+    HMAC_SHA256: 'SHA256',
+    HMAC_SHA384: 'SHA384',
+    HMAC_SHA512: 'SHA512',
+    HMAC_SHA1: 'SHA1',
+    HMAC_MD5: 'MD5',
 }
 
 default_algorithm = HMAC_MD5
@@ -95,8 +96,6 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    if isinstance(other_data, str):
-        other_data = other_data.encode()
     (algorithm_name, digestmod) = get_algorithm(algorithm)
     if first:
         ctx = hmac.new(secret, digestmod=digestmod)
@@ -111,8 +110,9 @@ def sign(wire, keyname, secret, time, fudge, original_id, error,
         ctx.update(keyname.to_digestable())
         ctx.update(struct.pack('!H', thirdparty.dns.rdataclass.ANY))
         ctx.update(struct.pack('!I', 0))
-    upper_time = (time >> 32) & 0xffff
-    lower_time = time & 0xffffffff
+    long_time = time + long(0)
+    upper_time = (long_time >> 32) & long(0xffff)
+    lower_time = long_time & long(0xffffffff)
     time_mac = struct.pack('!HIH', upper_time, lower_time, fudge)
     pre_mac = algorithm_name + time_mac
     ol = len(other_data)
@@ -147,6 +147,7 @@ def hmac_md5(wire, keyname, secret, time, fudge, original_id, error,
 def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
              tsig_rdlen, ctx=None, multi=False, first=True):
     """Validate the specified TSIG rdata against the other input parameters.
+
     @raises FormError: The TSIG is badly formed.
     @raises BadTime: There is too much time skew between the client and the
     server.
@@ -163,7 +164,7 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
     current = current + used
     (upper_time, lower_time, fudge, mac_size) = \
         struct.unpack("!HIHH", wire[current:current + 10])
-    time = (upper_time << 32) + lower_time
+    time = ((upper_time + long(0)) << 32) + (lower_time + long(0))
     current += 10
     mac = wire[current:current + mac_size]
     current += mac_size
@@ -192,7 +193,7 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
     (junk, our_mac, ctx) = sign(new_wire, keyname, secret, time, fudge,
                                 original_id, error, other_data,
                                 request_mac, ctx, multi, first, aname)
-    if our_mac != mac:
+    if (our_mac != mac):
         raise BadSignature
     return ctx
 
@@ -200,15 +201,16 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
 def get_algorithm(algorithm):
     """Returns the wire format string and the hash module to use for the
     specified TSIG algorithm
+
     @rtype: (string, hash constructor)
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    if isinstance(algorithm, str):
+    if isinstance(algorithm, string_types):
         algorithm = thirdparty.dns.name.from_text(algorithm)
 
     try:
-        return (algorithm.to_digestable(), _hashes[algorithm])
+        return (algorithm.to_digestable(), thirdparty.dns.hash.hashes[_hashes[algorithm]])
     except KeyError:
         raise NotImplementedError("TSIG algorithm " + str(algorithm) +
                                   " is not supported")

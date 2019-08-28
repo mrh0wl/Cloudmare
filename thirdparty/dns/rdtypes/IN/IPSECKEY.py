@@ -13,14 +13,16 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import cStringIO
 import struct
+import base64
 
 import thirdparty.dns.exception
 import thirdparty.dns.inet
 import thirdparty.dns.name
 
+
 class IPSECKEY(thirdparty.dns.rdata.Rdata):
+
     """IPSECKEY record
 
     @ivar precedence: the precedence for this key data
@@ -41,19 +43,20 @@ class IPSECKEY(thirdparty.dns.rdata.Rdata):
                  gateway, key):
         super(IPSECKEY, self).__init__(rdclass, rdtype)
         if gateway_type == 0:
-            if gateway != '.' and not gateway is None:
+            if gateway != '.' and gateway is not None:
                 raise SyntaxError('invalid gateway for gateway type 0')
             gateway = None
         elif gateway_type == 1:
             # check that it's OK
-            junk = thirdparty.dns.inet.inet_pton(thirdparty.dns.inet.AF_INET, gateway)
+            thirdparty.dns.inet.inet_pton(thirdparty.dns.inet.AF_INET, gateway)
         elif gateway_type == 2:
             # check that it's OK
-            junk = thirdparty.dns.inet.inet_pton(thirdparty.dns.inet.AF_INET6, gateway)
+            thirdparty.dns.inet.inet_pton(thirdparty.dns.inet.AF_INET6, gateway)
         elif gateway_type == 3:
             pass
         else:
-            raise SyntaxError('invalid IPSECKEY gateway type: %d' % gateway_type)
+            raise SyntaxError(
+                'invalid IPSECKEY gateway type: %d' % gateway_type)
         self.precedence = precedence
         self.gateway_type = gateway_type
         self.algorithm = algorithm
@@ -73,9 +76,10 @@ class IPSECKEY(thirdparty.dns.rdata.Rdata):
             raise ValueError('invalid gateway type')
         return '%d %d %d %s %s' % (self.precedence, self.gateway_type,
                                    self.algorithm, gateway,
-                                   dns.rdata._base64ify(self.key))
+                                   thirdparty.dns.rdata._base64ify(self.key))
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         precedence = tok.get_uint8()
         gateway_type = tok.get_uint8()
         algorithm = tok.get_uint8()
@@ -89,16 +93,14 @@ class IPSECKEY(thirdparty.dns.rdata.Rdata):
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        b64 = ''.join(chunks)
-        key = b64.decode('base64_codec')
+                raise thirdparty.dns.exception.SyntaxError
+            chunks.append(t.value.encode())
+        b64 = b''.join(chunks)
+        key = base64.b64decode(b64)
         return cls(rdclass, rdtype, precedence, gateway_type, algorithm,
                    gateway, key)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!BBB", self.precedence, self.gateway_type,
                              self.algorithm)
         file.write(header)
@@ -114,10 +116,11 @@ class IPSECKEY(thirdparty.dns.rdata.Rdata):
             raise ValueError('invalid gateway type')
         file.write(self.key)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         if rdlen < 3:
-            raise dns.exception.FormError
-        header = struct.unpack('!BBB', wire[current : current + 3])
+            raise thirdparty.dns.exception.FormError
+        header = struct.unpack('!BBB', wire[current: current + 3])
         gateway_type = header[1]
         current += 3
         rdlen -= 3
@@ -125,12 +128,12 @@ class IPSECKEY(thirdparty.dns.rdata.Rdata):
             gateway = None
         elif gateway_type == 1:
             gateway = thirdparty.dns.inet.inet_ntop(thirdparty.dns.inet.AF_INET,
-                                         wire[current : current + 4])
+                                         wire[current: current + 4])
             current += 4
             rdlen -= 4
         elif gateway_type == 2:
             gateway = thirdparty.dns.inet.inet_ntop(thirdparty.dns.inet.AF_INET6,
-                                         wire[current : current + 16])
+                                         wire[current: current + 16])
             current += 16
             rdlen -= 16
         elif gateway_type == 3:
@@ -139,21 +142,8 @@ class IPSECKEY(thirdparty.dns.rdata.Rdata):
             current += cused
             rdlen -= cused
         else:
-            raise dns.exception.FormError('invalid IPSECKEY gateway type')
-        key = wire[current : current + rdlen].unwrap()
+            raise thirdparty.dns.exception.FormError('invalid IPSECKEY gateway type')
+        key = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], gateway_type, header[2],
                    gateway, key)
 
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        f = cStringIO.StringIO()
-        self.to_wire(f)
-        wire1 = f.getvalue()
-        f.seek(0)
-        f.truncate()
-        other.to_wire(f)
-        wire2 = f.getvalue()
-        f.close()
-
-        return cmp(wire1, wire2)

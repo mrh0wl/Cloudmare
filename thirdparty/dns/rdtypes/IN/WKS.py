@@ -18,11 +18,14 @@ import struct
 
 import thirdparty.dns.ipv4
 import thirdparty.dns.rdata
+from thirdparty.dns._compat import xrange
 
 _proto_tcp = socket.getprotobyname('tcp')
 _proto_udp = socket.getprotobyname('udp')
 
+
 class WKS(thirdparty.dns.rdata.Rdata):
+
     """WKS record
 
     @ivar address: the address
@@ -39,26 +42,30 @@ class WKS(thirdparty.dns.rdata.Rdata):
         super(WKS, self).__init__(rdclass, rdtype)
         self.address = address
         self.protocol = protocol
-        self.bitmap = bitmap
+        if not isinstance(bitmap, bytearray):
+            self.bitmap = bytearray(bitmap)
+        else:
+            self.bitmap = bitmap
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
         for i in xrange(0, len(self.bitmap)):
-            byte = ord(self.bitmap[i])
+            byte = self.bitmap[i]
             for j in xrange(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
         text = ' '.join(bits)
         return '%s %d %s' % (self.address, self.protocol, text)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         address = tok.get_string()
         protocol = tok.get_string()
         if protocol.isdigit():
             protocol = int(protocol)
         else:
             protocol = socket.getprotobyname(protocol)
-        bitmap = []
+        bitmap = bytearray()
         while 1:
             token = tok.get().unescape()
             if token.is_eol_or_eof():
@@ -77,37 +84,23 @@ class WKS(thirdparty.dns.rdata.Rdata):
             l = len(bitmap)
             if l < i + 1:
                 for j in xrange(l, i + 1):
-                    bitmap.append('\x00')
-            bitmap[i] = chr(ord(bitmap[i]) | (0x80 >> (serv % 8)))
+                    bitmap.append(0)
+            bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = thirdparty.dns.rdata._truncate_bitmap(bitmap)
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         file.write(thirdparty.dns.ipv4.inet_aton(self.address))
         protocol = struct.pack('!B', self.protocol)
         file.write(protocol)
         file.write(self.bitmap)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        address = thirdparty.dns.ipv4.inet_ntoa(wire[current : current + 4])
-        protocol, = struct.unpack('!B', wire[current + 4 : current + 5])
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        address = thirdparty.dns.ipv4.inet_ntoa(wire[current: current + 4])
+        protocol, = struct.unpack('!B', wire[current + 4: current + 5])
         current += 5
         rdlen -= 5
-        bitmap = wire[current : current + rdlen].unwrap()
+        bitmap = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        sa = thirdparty.dns.ipv4.inet_aton(self.address)
-        oa = thirdparty.dns.ipv4.inet_aton(other.address)
-        v = cmp(sa, oa)
-        if v == 0:
-            sp = struct.pack('!B', self.protocol)
-            op = struct.pack('!B', other.protocol)
-            v = cmp(sp, op)
-            if v == 0:
-                v = cmp(self.bitmap, other.bitmap)
-        return v

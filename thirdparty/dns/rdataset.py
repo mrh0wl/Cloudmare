@@ -24,20 +24,25 @@ import thirdparty.dns.rdatatype
 import thirdparty.dns.rdataclass
 import thirdparty.dns.rdata
 import thirdparty.dns.set
+from ._compat import string_types
 
 # define SimpleSet here for backwards compatibility
 SimpleSet = thirdparty.dns.set.Set
 
+
 class DifferingCovers(thirdparty.dns.exception.DNSException):
-    """Raised if an attempt is made to add a SIG/RRSIG whose covered type
+
+    """An attempt was made to add a DNS SIG/RRSIG whose covered type
     is not the same as that of the other rdatas in the rdataset."""
-    pass
+
 
 class IncompatibleTypes(thirdparty.dns.exception.DNSException):
-    """Raised if an attempt is made to add rdata of an incompatible type."""
-    pass
+
+    """An attempt was made to add DNS RR data of an incompatible type."""
+
 
 class Rdataset(thirdparty.dns.set.Set):
+
     """A DNS rdataset.
 
     @ivar rdclass: The class of the rdataset
@@ -45,8 +50,8 @@ class Rdataset(thirdparty.dns.set.Set):
     @ivar rdtype: The type of the rdataset
     @type rdtype: int
     @ivar covers: The covered type.  Usually this value is
-    dns.rdatatype.NONE, but if the rdtype is dns.rdatatype.SIG or
-    dns.rdatatype.RRSIG, then the covers value will be the rdata
+    thirdparty.dns.rdatatype.NONE, but if the rdtype is thirdparty.dns.rdatatype.SIG or
+    thirdparty.dns.rdatatype.RRSIG, then the covers value will be the rdata
     type the SIG/RRSIG covers.  The library treats the SIG and RRSIG
     types as if they were a family of
     types, e.g. RRSIG(A), RRSIG(NS), RRSIG(SOA).  This makes RRSIGs much
@@ -98,7 +103,7 @@ class Rdataset(thirdparty.dns.set.Set):
         self.update_ttl(ttl) will be called prior to adding the rdata.
 
         @param rd: The rdata
-        @type rd: dns.rdata.Rdata object
+        @type rd: thirdparty.dns.rdata.Rdata object
         @param ttl: The TTL
         @type ttl: int"""
 
@@ -110,7 +115,7 @@ class Rdataset(thirdparty.dns.set.Set):
         #
         if self.rdclass != rd.rdclass or self.rdtype != rd.rdtype:
             raise IncompatibleTypes
-        if not ttl is None:
+        if ttl is not None:
             self.update_ttl(ttl)
         if self.rdtype == thirdparty.dns.rdatatype.RRSIG or \
            self.rdtype == thirdparty.dns.rdatatype.SIG:
@@ -119,7 +124,7 @@ class Rdataset(thirdparty.dns.set.Set):
                 self.covers = covers
             elif self.covers != covers:
                 raise DifferingCovers
-        if dns.rdatatype.is_singleton(rd.rdtype) and len(self) > 0:
+        if thirdparty.dns.rdatatype.is_singleton(rd.rdtype) and len(self) > 0:
             self.clear()
         super(Rdataset, self).add(rd)
 
@@ -135,7 +140,7 @@ class Rdataset(thirdparty.dns.set.Set):
         """Add all rdatas in other to self.
 
         @param other: The rdataset from which to update
-        @type other: dns.rdataset.Rdataset object"""
+        @type other: thirdparty.dns.rdataset.Rdataset object"""
 
         self.update_ttl(other.ttl)
         super(Rdataset, self).update(other)
@@ -144,9 +149,9 @@ class Rdataset(thirdparty.dns.set.Set):
         if self.covers == 0:
             ctext = ''
         else:
-            ctext = '(' + dns.rdatatype.to_text(self.covers) + ')'
-        return '<DNS ' + dns.rdataclass.to_text(self.rdclass) + ' ' + \
-               dns.rdatatype.to_text(self.rdtype) + ctext + ' rdataset>'
+            ctext = '(' + thirdparty.dns.rdatatype.to_text(self.covers) + ')'
+        return '<DNS ' + thirdparty.dns.rdataclass.to_text(self.rdclass) + ' ' + \
+               thirdparty.dns.rdatatype.to_text(self.rdtype) + ctext + ' rdataset>'
 
     def __str__(self):
         return self.to_text()
@@ -171,7 +176,7 @@ class Rdataset(thirdparty.dns.set.Set):
                 override_rdclass=None, **kw):
         """Convert the rdataset into DNS master file format.
 
-        @see: L{dns.name.Name.choose_relativity} for more information
+        @see: L{thirdparty.dns.name.Name.choose_relativity} for more information
         on how I{origin} and I{relativize} determine the way names
         are emitted.
 
@@ -180,20 +185,20 @@ class Rdataset(thirdparty.dns.set.Set):
 
         @param name: If name is not None, emit a RRs with I{name} as
         the owner name.
-        @type name: dns.name.Name object
+        @type name: thirdparty.dns.name.Name object
         @param origin: The origin for relative names, or None.
-        @type origin: dns.name.Name object
+        @type origin: thirdparty.dns.name.Name object
         @param relativize: True if names should names be relativized
         @type relativize: bool"""
-        if not name is None:
+        if name is not None:
             name = name.choose_relativity(origin, relativize)
             ntext = str(name)
             pad = ' '
         else:
             ntext = ''
             pad = ''
-        s = StringIO.StringIO()
-        if not override_rdclass is None:
+        s = StringIO()
+        if override_rdclass is not None:
             rdclass = override_rdclass
         else:
             rdclass = self.rdclass
@@ -203,15 +208,16 @@ class Rdataset(thirdparty.dns.set.Set):
             # some dynamic updates, so we don't need to print out the TTL
             # (which is meaningless anyway).
             #
-            print >> s, '%s%s%s %s' % (ntext, pad,
-                                       dns.rdataclass.to_text(rdclass),
-                                       dns.rdatatype.to_text(self.rdtype))
+            s.write(u'%s%s%s %s\n' % (ntext, pad,
+                                      thirdparty.dns.rdataclass.to_text(rdclass),
+                                      thirdparty.dns.rdatatype.to_text(self.rdtype)))
         else:
             for rd in self:
-                print >> s, '%s%s%d %s %s %s' % \
-                      (ntext, pad, self.ttl, dns.rdataclass.to_text(rdclass),
-                       dns.rdatatype.to_text(self.rdtype),
-                       rd.to_text(origin=origin, relativize=relativize, **kw))
+                s.write(u'%s%s%d %s %s %s\n' %
+                        (ntext, pad, self.ttl, thirdparty.dns.rdataclass.to_text(rdclass),
+                         thirdparty.dns.rdatatype.to_text(self.rdtype),
+                         rd.to_text(origin=origin, relativize=relativize,
+                         **kw)))
         #
         # We strip off the final \n for the caller's convenience in printing
         #
@@ -222,7 +228,7 @@ class Rdataset(thirdparty.dns.set.Set):
         """Convert the rdataset to wire format.
 
         @param name: The owner name of the RRset that will be emitted
-        @type name: dns.name.Name object
+        @type name: thirdparty.dns.name.Name object
         @param file: The file to which the wire format data will be appended
         @type file: file
         @param compress: The compression table to use; the default is None.
@@ -233,8 +239,8 @@ class Rdataset(thirdparty.dns.set.Set):
         @rtype: int
         """
 
-        if not override_rdclass is None:
-            rdclass =  override_rdclass
+        if override_rdclass is not None:
+            rdclass = override_rdclass
             want_shuffle = False
         else:
             rdclass = self.rdclass
@@ -274,16 +280,17 @@ class Rdataset(thirdparty.dns.set.Set):
             return True
         return False
 
+
 def from_text_list(rdclass, rdtype, ttl, text_rdatas):
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified list of rdatas in text format.
 
-    @rtype: dns.rdataset.Rdataset object
+    @rtype: thirdparty.dns.rdataset.Rdataset object
     """
 
-    if isinstance(rdclass, (str, unicode)):
+    if isinstance(rdclass, string_types):
         rdclass = thirdparty.dns.rdataclass.from_text(rdclass)
-    if isinstance(rdtype, (str, unicode)):
+    if isinstance(rdtype, string_types):
         rdtype = thirdparty.dns.rdatatype.from_text(rdtype)
     r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)
@@ -292,20 +299,22 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas):
         r.add(rd)
     return r
 
+
 def from_text(rdclass, rdtype, ttl, *text_rdatas):
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified rdatas in text format.
 
-    @rtype: dns.rdataset.Rdataset object
+    @rtype: thirdparty.dns.rdataset.Rdataset object
     """
 
     return from_text_list(rdclass, rdtype, ttl, text_rdatas)
+
 
 def from_rdata_list(ttl, rdatas):
     """Create an rdataset with the specified TTL, and with
     the specified list of rdata objects.
 
-    @rtype: dns.rdataset.Rdataset object
+    @rtype: thirdparty.dns.rdataset.Rdataset object
     """
 
     if len(rdatas) == 0:
@@ -315,15 +324,15 @@ def from_rdata_list(ttl, rdatas):
         if r is None:
             r = Rdataset(rd.rdclass, rd.rdtype)
             r.update_ttl(ttl)
-            first_time = False
         r.add(rd)
     return r
+
 
 def from_rdata(ttl, *rdatas):
     """Create an rdataset with the specified TTL, and with
     the specified rdata objects.
 
-    @rtype: dns.rdataset.Rdataset object
+    @rtype: thirdparty.dns.rdataset.Rdataset object
     """
 
     return from_rdata_list(ttl, rdatas)

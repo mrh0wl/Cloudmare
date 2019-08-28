@@ -17,12 +17,16 @@
 
 __all__ = [
     'AFSDB',
+    'CDNSKEY',
+    'CDS',
     'CERT',
     'CNAME',
     'DLV',
     'DNAME',
     'DNSKEY',
     'DS',
+    'EUI48',
+    'EUI64',
     'GPOS',
     'HINFO',
     'HIP',

@@ -19,13 +19,15 @@ import thirdparty.dns.exception
 import thirdparty.dns.rdata
 import thirdparty.dns.name
 
+
 class SOA(thirdparty.dns.rdata.Rdata):
+
     """SOA record
 
     @ivar mname: the SOA MNAME (master name) field
-    @type mname: dns.name.Name object
+    @type mname: thirdparty.dns.name.Name object
     @ivar rname: the SOA RNAME (responsible name) field
-    @type rname: dns.name.Name object
+    @type rname: thirdparty.dns.name.Name object
     @ivar serial: The zone's serial number
     @type serial: int
     @ivar refresh: The zone's refresh value (in seconds)
@@ -58,9 +60,10 @@ class SOA(thirdparty.dns.rdata.Rdata):
         rname = self.rname.choose_relativity(origin, relativize)
         return '%s %s %d %d %d %d %d' % (
             mname, rname, self.serial, self.refresh, self.retry,
-            self.expire, self.minimum )
+            self.expire, self.minimum)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         mname = tok.get_name()
         rname = tok.get_name()
         mname = mname.choose_relativity(origin, relativize)
@@ -72,24 +75,23 @@ class SOA(thirdparty.dns.rdata.Rdata):
         minimum = tok.get_ttl()
         tok.get_eol()
         return cls(rdclass, rdtype, mname, rname, serial, refresh, retry,
-                   expire, minimum )
+                   expire, minimum)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         self.mname.to_wire(file, compress, origin)
         self.rname.to_wire(file, compress, origin)
         five_ints = struct.pack('!IIIII', self.serial, self.refresh,
                                 self.retry, self.expire, self.minimum)
         file.write(five_ints)
 
-    def to_digestable(self, origin = None):
+    def to_digestable(self, origin=None):
         return self.mname.to_digestable(origin) + \
             self.rname.to_digestable(origin) + \
             struct.pack('!IIIII', self.serial, self.refresh,
                         self.retry, self.expire, self.minimum)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (mname, cused) = thirdparty.dns.name.from_wire(wire[: current + rdlen], current)
         current += cused
         rdlen -= cused
@@ -97,31 +99,16 @@ class SOA(thirdparty.dns.rdata.Rdata):
         current += cused
         rdlen -= cused
         if rdlen != 20:
-            raise dns.exception.FormError
+            raise thirdparty.dns.exception.FormError
         five_ints = struct.unpack('!IIIII',
-                                  wire[current : current + rdlen])
-        if not origin is None:
+                                  wire[current: current + rdlen])
+        if origin is not None:
             mname = mname.relativize(origin)
             rname = rname.relativize(origin)
         return cls(rdclass, rdtype, mname, rname,
                    five_ints[0], five_ints[1], five_ints[2], five_ints[3],
                    five_ints[4])
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         self.mname = self.mname.choose_relativity(origin, relativize)
         self.rname = self.rname.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        v = cmp(self.mname, other.mname)
-        if v == 0:
-            v = cmp(self.rname, other.rname)
-            if v == 0:
-                self_ints = struct.pack('!IIIII', self.serial, self.refresh,
-                                        self.retry, self.expire, self.minimum)
-                other_ints = struct.pack('!IIIII', other.serial, other.refresh,
-                                         other.retry, other.expire,
-                                         other.minimum)
-                v = cmp(self_ints, other_ints)
-        return v

@@ -17,14 +17,16 @@ import thirdparty.dns.exception
 import thirdparty.dns.rdata
 import thirdparty.dns.name
 
+
 class RP(thirdparty.dns.rdata.Rdata):
+
     """RP record
 
     @ivar mbox: The responsible person's mailbox
-    @type mbox: dns.name.Name object
+    @type mbox: thirdparty.dns.name.Name object
     @ivar txt: The owner name of a node with TXT records, or the root name
     if no TXT records are associated with this RP.
-    @type txt: dns.name.Name object
+    @type txt: thirdparty.dns.name.Name object
     @see: RFC 1183"""
 
     __slots__ = ['mbox', 'txt']
@@ -39,7 +41,8 @@ class RP(thirdparty.dns.rdata.Rdata):
         txt = self.txt.choose_relativity(origin, relativize)
         return "%s %s" % (str(mbox), str(txt))
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         mbox = tok.get_name()
         txt = tok.get_name()
         mbox = mbox.choose_relativity(origin, relativize)
@@ -47,40 +50,31 @@ class RP(thirdparty.dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, mbox, txt)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         self.mbox.to_wire(file, None, origin)
         self.txt.to_wire(file, None, origin)
 
-    def to_digestable(self, origin = None):
+    def to_digestable(self, origin=None):
         return self.mbox.to_digestable(origin) + \
             self.txt.to_digestable(origin)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         (mbox, cused) = thirdparty.dns.name.from_wire(wire[: current + rdlen],
                                            current)
         current += cused
         rdlen -= cused
         if rdlen <= 0:
-            raise dns.exception.FormError
+            raise thirdparty.dns.exception.FormError
         (txt, cused) = thirdparty.dns.name.from_wire(wire[: current + rdlen],
                                           current)
         if cused != rdlen:
-            raise dns.exception.FormError
-        if not origin is None:
+            raise thirdparty.dns.exception.FormError
+        if origin is not None:
             mbox = mbox.relativize(origin)
             txt = txt.relativize(origin)
         return cls(rdclass, rdtype, mbox, txt)
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         self.mbox = self.mbox.choose_relativity(origin, relativize)
         self.txt = self.txt.choose_relativity(origin, relativize)
-
-    def _cmp(self, other):
-        v = cmp(self.mbox, other.mbox)
-        if v == 0:
-            v = cmp(self.txt, other.txt)
-        return v

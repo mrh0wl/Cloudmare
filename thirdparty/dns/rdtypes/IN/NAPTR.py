@@ -18,15 +18,24 @@ import struct
 import thirdparty.dns.exception
 import thirdparty.dns.name
 import thirdparty.dns.rdata
+from thirdparty.dns._compat import xrange, text_type
+
 
 def _write_string(file, s):
     l = len(s)
     assert l < 256
-    byte = chr(l)
-    file.write(byte)
+    file.write(struct.pack('!B', l))
     file.write(s)
 
+
+def _sanitize(value):
+    if isinstance(value, text_type):
+        return value.encode()
+    return value
+
+
 class NAPTR(thirdparty.dns.rdata.Rdata):
+
     """NAPTR record
 
     @ivar order: order
@@ -40,7 +49,7 @@ class NAPTR(thirdparty.dns.rdata.Rdata):
     @ivar regexp: regular expression
     @type regexp: string
     @ivar replacement: replacement name
-    @type replacement: dns.name.Name object
+    @type replacement: thirdparty.dns.name.Name object
     @see: RFC 3403"""
 
     __slots__ = ['order', 'preference', 'flags', 'service', 'regexp',
@@ -49,23 +58,24 @@ class NAPTR(thirdparty.dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, order, preference, flags, service,
                  regexp, replacement):
         super(NAPTR, self).__init__(rdclass, rdtype)
+        self.flags = _sanitize(flags)
+        self.service = _sanitize(service)
+        self.regexp = _sanitize(regexp)
         self.order = order
         self.preference = preference
-        self.flags = flags
-        self.service = service
-        self.regexp = regexp
         self.replacement = replacement
 
     def to_text(self, origin=None, relativize=True, **kw):
         replacement = self.replacement.choose_relativity(origin, relativize)
         return '%d %d "%s" "%s" "%s" %s' % \
                (self.order, self.preference,
-                dns.rdata._escapify(self.flags),
-                dns.rdata._escapify(self.service),
-                dns.rdata._escapify(self.regexp),
-                self.replacement)
+                thirdparty.dns.rdata._escapify(self.flags),
+                thirdparty.dns.rdata._escapify(self.service),
+                thirdparty.dns.rdata._escapify(self.regexp),
+                replacement)
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         order = tok.get_uint16()
         preference = tok.get_uint16()
         flags = tok.get_string()
@@ -77,9 +87,7 @@ class NAPTR(thirdparty.dns.rdata.Rdata):
         return cls(rdclass, rdtype, order, preference, flags, service,
                    regexp, replacement)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         two_ints = struct.pack("!HH", self.order, self.preference)
         file.write(two_ints)
         _write_string(file, self.flags)
@@ -87,46 +95,31 @@ class NAPTR(thirdparty.dns.rdata.Rdata):
         _write_string(file, self.regexp)
         self.replacement.to_wire(file, compress, origin)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        (order, preference) = struct.unpack('!HH', wire[current : current + 4])
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        (order, preference) = struct.unpack('!HH', wire[current: current + 4])
         current += 4
         rdlen -= 4
         strings = []
         for i in xrange(3):
-            l = ord(wire[current])
+            l = wire[current]
             current += 1
             rdlen -= 1
             if l > rdlen or rdlen < 0:
-                raise dns.exception.FormError
-            s = wire[current : current + l].unwrap()
+                raise thirdparty.dns.exception.FormError
+            s = wire[current: current + l].unwrap()
             current += l
             rdlen -= l
             strings.append(s)
         (replacement, cused) = thirdparty.dns.name.from_wire(wire[: current + rdlen],
                                                   current)
         if cused != rdlen:
-            raise dns.exception.FormError
-        if not origin is None:
+            raise thirdparty.dns.exception.FormError
+        if origin is not None:
             replacement = replacement.relativize(origin)
         return cls(rdclass, rdtype, order, preference, strings[0], strings[1],
                    strings[2], replacement)
 
-    from_wire = classmethod(from_wire)
-
-    def choose_relativity(self, origin = None, relativize = True):
+    def choose_relativity(self, origin=None, relativize=True):
         self.replacement = self.replacement.choose_relativity(origin,
                                                               relativize)
-
-    def _cmp(self, other):
-        sp = struct.pack("!HH", self.order, self.preference)
-        op = struct.pack("!HH", other.order, other.preference)
-        v = cmp(sp, op)
-        if v == 0:
-            v = cmp(self.flags, other.flags)
-            if v == 0:
-                v = cmp(self.service, other.service)
-                if v == 0:
-                    v = cmp(self.regexp, other.regexp)
-                    if v == 0:
-                        v = cmp(self.replacement, other.replacement)
-        return v

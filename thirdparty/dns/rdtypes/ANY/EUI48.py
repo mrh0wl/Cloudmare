@@ -14,10 +14,10 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.euibase
+import thirdparty.dns.rdtypes.euibase
 
 
-class EUI48(dns.rdtypes.euibase.EUIBase):
+class EUI48(thirdparty.dns.rdtypes.euibase.EUIBase):
 
     """EUI48 record
 

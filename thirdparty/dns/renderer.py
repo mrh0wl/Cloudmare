@@ -19,9 +19,11 @@ from io import BytesIO
 import struct
 import random
 import time
+import sys
 
 import thirdparty.dns.exception
 import thirdparty.dns.tsig
+from ._compat import long
 
 
 QUESTION = 0
@@ -31,12 +33,16 @@ ADDITIONAL = 3
 
 
 class Renderer(object):
+
     """Helper class for building DNS wire-format messages.
+
     Most applications can use the higher-level L{thirdparty.dns.message.Message}
     class and its to_wire() method to generate wire-format messages.
     This class is for those applications which need finer control
     over the generation of messages.
+
     Typical use::
+
         r = thirdparty.dns.renderer.Renderer(id=1, flags=0x80, max_size=512)
         r.add_question(qname, qtype, qclass)
         r.add_rrset(thirdparty.dns.renderer.ANSWER, rrset_1)
@@ -48,19 +54,42 @@ class Renderer(object):
         r.write_header()
         r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
         wire = r.get_wire()
-    output, a BytesIO, where rendering is written
-    id: the message id
-    flags: the message flags
-    max_size: the maximum size of the message
-    origin: the origin to use when rendering relative names
-    compress: the compression table
-    section: an int, the section currently being rendered
-    counts: list of the number of RRs in each section
-    mac: the MAC of the rendered message (if TSIG was used)
+
+    @ivar output: where rendering is written
+    @type output: BytesIO object
+    @ivar id: the message id
+    @type id: int
+    @ivar flags: the message flags
+    @type flags: int
+    @ivar max_size: the maximum size of the message
+    @type max_size: int
+    @ivar origin: the origin to use when rendering relative names
+    @type origin: thirdparty.dns.name.Name object
+    @ivar compress: the compression table
+    @type compress: dict
+    @ivar section: the section currently being rendered
+    @type section: int (thirdparty.dns.renderer.QUESTION, thirdparty.dns.renderer.ANSWER,
+    thirdparty.dns.renderer.AUTHORITY, or thirdparty.dns.renderer.ADDITIONAL)
+    @ivar counts: list of the number of RRs in each section
+    @type counts: int list of length 4
+    @ivar mac: the MAC of the rendered message (if TSIG was used)
+    @type mac: string
     """
 
     def __init__(self, id=None, flags=0, max_size=65535, origin=None):
-        """Initialize a new renderer."""
+        """Initialize a new renderer.
+
+        @param id: the message id
+        @type id: int
+        @param flags: the DNS message flags
+        @type flags: int
+        @param max_size: the maximum message size; the default is 65535.
+        If rendering results in a message greater than I{max_size},
+        then L{thirdparty.dns.exception.TooBig} will be raised.
+        @type max_size: int
+        @param origin: the origin to use when rendering relative names
+        @type origin: thirdparty.dns.name.Name or None.
+        """
 
         self.output = BytesIO()
         if id is None:
@@ -77,9 +106,12 @@ class Renderer(object):
         self.mac = ''
 
     def _rollback(self, where):
-        """Truncate the output buffer at offset *where*, and remove any
+        """Truncate the output buffer at offset I{where}, and remove any
         compression table entries that pointed beyond the truncation
         point.
+
+        @param where: the offset
+        @type where: int
         """
 
         self.output.seek(where)
@@ -93,9 +125,13 @@ class Renderer(object):
 
     def _set_section(self, section):
         """Set the renderer's current section.
+
         Sections must be rendered order: QUESTION, ANSWER, AUTHORITY,
         ADDITIONAL.  Sections may be empty.
-        Raises thirdparty.dns.exception.FormError if an attempt was made to set
+
+        @param section: the section
+        @type section: int
+        @raises thirdparty.dns.exception.FormError: an attempt was made to set
         a section value less than the current section.
         """
 
@@ -105,7 +141,15 @@ class Renderer(object):
             self.section = section
 
     def add_question(self, qname, rdtype, rdclass=thirdparty.dns.rdataclass.IN):
-        """Add a question to the message."""
+        """Add a question to the message.
+
+        @param qname: the question name
+        @type qname: thirdparty.dns.name.Name
+        @param rdtype: the question rdata type
+        @type rdtype: int
+        @param rdclass: the question rdata class
+        @type rdclass: int
+        """
 
         self._set_section(QUESTION)
         before = self.output.tell()
@@ -119,8 +163,14 @@ class Renderer(object):
 
     def add_rrset(self, section, rrset, **kw):
         """Add the rrset to the specified section.
+
         Any keyword arguments are passed on to the rdataset's to_wire()
         routine.
+
+        @param section: the section
+        @type section: int
+        @param rrset: the rrset
+        @type rrset: thirdparty.dns.rrset.RRset object
         """
 
         self._set_section(section)
@@ -135,8 +185,16 @@ class Renderer(object):
     def add_rdataset(self, section, name, rdataset, **kw):
         """Add the rdataset to the specified section, using the specified
         name as the owner name.
+
         Any keyword arguments are passed on to the rdataset's to_wire()
         routine.
+
+        @param section: the section
+        @type section: int
+        @param name: the owner name
+        @type name: thirdparty.dns.name.Name object
+        @param rdataset: the rdataset
+        @type rdataset: thirdparty.dns.rdataset.Rdataset object
         """
 
         self._set_section(section)
@@ -150,10 +208,22 @@ class Renderer(object):
         self.counts[section] += n
 
     def add_edns(self, edns, ednsflags, payload, options=None):
-        """Add an EDNS OPT record to the message."""
+        """Add an EDNS OPT record to the message.
+
+        @param edns: The EDNS level to use.
+        @type edns: int
+        @param ednsflags: EDNS flag values.
+        @type ednsflags: int
+        @param payload: The EDNS sender's payload field, which is the maximum
+        size of UDP datagram the sender can handle.
+        @type payload: int
+        @param options: The EDNS options list
+        @type options: list of thirdparty.dns.ethirdparty.dns.Option instances
+        @see: RFC 2671
+        """
 
         # make sure the EDNS version in ednsflags agrees with edns
-        ednsflags &= 0xFF00FFFF
+        ednsflags &= long(0xFF00FFFF)
         ednsflags |= (edns << 16)
         self._set_section(ADDITIONAL)
         before = self.output.tell()
@@ -186,64 +256,50 @@ class Renderer(object):
 
     def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
                  request_mac, algorithm=thirdparty.dns.tsig.default_algorithm):
-        """Add a TSIG signature to the message."""
+        """Add a TSIG signature to the message.
 
-        s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = thirdparty.dns.tsig.sign(s,
-                                                    keyname,
-                                                    secret,
-                                                    int(time.time()),
-                                                    fudge,
-                                                    id,
-                                                    tsig_error,
-                                                    other_data,
-                                                    request_mac,
-                                                    algorithm=algorithm)
-        self._write_tsig(tsig_rdata, keyname)
+        @param keyname: the TSIG key name
+        @type keyname: thirdparty.dns.name.Name object
+        @param secret: the secret to use
+        @type secret: string
+        @param fudge: TSIG time fudge
+        @type fudge: int
+        @param id: the message id to encode in the tsig signature
+        @type id: int
+        @param tsig_error: TSIG error code; default is 0.
+        @type tsig_error: int
+        @param other_data: TSIG other data.
+        @type other_data: string
+        @param request_mac: This message is a response to the request which
+        had the specified MAC.
+        @type request_mac: string
+        @param algorithm: the TSIG algorithm to use
+        @type algorithm: thirdparty.dns.name.Name object
+        """
 
-    def add_multi_tsig(self, ctx, keyname, secret, fudge, id, tsig_error,
-                       other_data, request_mac,
-                       algorithm=thirdparty.dns.tsig.default_algorithm):
-        """Add a TSIG signature to the message. Unlike add_tsig(), this can be
-        used for a series of consecutive DNS envelopes, e.g. for a zone
-        transfer over TCP [RFC2845, 4.4].
-        For the first message in the sequence, give ctx=None. For each
-        subsequent message, give the ctx that was returned from the
-        add_multi_tsig() call for the previous message."""
-
-        s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = thirdparty.dns.tsig.sign(s,
-                                                    keyname,
-                                                    secret,
-                                                    int(time.time()),
-                                                    fudge,
-                                                    id,
-                                                    tsig_error,
-                                                    other_data,
-                                                    request_mac,
-                                                    ctx=ctx,
-                                                    first=ctx is None,
-                                                    multi=True,
-                                                    algorithm=algorithm)
-        self._write_tsig(tsig_rdata, keyname)
-        return ctx
-
-    def _write_tsig(self, tsig_rdata, keyname):
         self._set_section(ADDITIONAL)
         before = self.output.tell()
-
+        s = self.output.getvalue()
+        (tsig_rdata, self.mac, ctx) = thirdparty.dns.tsig.sign(s,
+                                                    keyname,
+                                                    secret,
+                                                    int(time.time()),
+                                                    fudge,
+                                                    id,
+                                                    tsig_error,
+                                                    other_data,
+                                                    request_mac,
+                                                    algorithm=algorithm)
         keyname.to_wire(self.output, self.compress, self.origin)
         self.output.write(struct.pack('!HHIH', thirdparty.dns.rdatatype.TSIG,
                                       thirdparty.dns.rdataclass.ANY, 0, 0))
         rdata_start = self.output.tell()
         self.output.write(tsig_rdata)
-
         after = self.output.tell()
         assert after - rdata_start < 65536
         if after >= self.max_size:
             self._rollback(before)
             raise thirdparty.dns.exception.TooBig
-
         self.output.seek(rdata_start - 2)
         self.output.write(struct.pack('!H', after - rdata_start))
         self.counts[ADDITIONAL] += 1
@@ -253,6 +309,7 @@ class Renderer(object):
 
     def write_header(self):
         """Write the DNS message header.
+
         Writing the DNS message header is done after all sections
         have been rendered, but before the optional TSIG signature
         is added.
@@ -265,6 +322,9 @@ class Renderer(object):
         self.output.seek(0, 2)
 
     def get_wire(self):
-        """Return the wire format message."""
+        """Return the wire format message.
+
+        @rtype: string
+        """
 
         return self.output.getvalue()

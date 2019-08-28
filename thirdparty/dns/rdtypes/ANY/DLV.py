@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.dsbase
 
+
 class DLV(thirdparty.dns.rdtypes.dsbase.DSBase):
+
     """DLV record"""
-    pass

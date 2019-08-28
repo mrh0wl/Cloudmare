@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.nsbase
 
+
 class NSAP_PTR(thirdparty.dns.rdtypes.nsbase.UncompressedNS):
+
     """NSAP-PTR record"""
-    pass

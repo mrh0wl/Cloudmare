@@ -1,7 +1,7 @@
 import six
 
 if six.PY2:
-    from functools32 import lru_cache
+    from thirdparty.functools32 import lru_cache
 else:
     from functools import lru_cache
 

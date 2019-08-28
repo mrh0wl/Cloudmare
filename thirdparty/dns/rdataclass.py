@@ -47,7 +47,7 @@ _by_text = {
 # cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
 # would cause the mapping not to be true inverse.
 
-_by_value = {y: x for x, y in _by_text.items()}
+_by_value = dict((y, x) for x, y in _by_text.items())
 
 # Now that we've built the inverse map, we can add class aliases to
 # the _by_text mapping.
@@ -67,17 +67,17 @@ _unknown_class_pattern = re.compile('CLASS([0-9]+)$', re.I)
 
 
 class UnknownRdataclass(thirdparty.dns.exception.DNSException):
+
     """A DNS class is unknown."""
 
 
 def from_text(text):
     """Convert text into a DNS rdata class value.
-    The input text can be a defined DNS RR class mnemonic or
-    instance of the DNS generic class syntax.
-    For example, "IN" and "CLASS1" will both result in a value of 1.
-    Raises ``dns.rdatatype.UnknownRdataclass`` if the class is unknown.
-    Raises ``ValueError`` if the rdata class value is not >= 0 and <= 65535.
-    Returns an ``int``.
+    @param text: the text
+    @type text: string
+    @rtype: int
+    @raises thirdparty.dns.rdataclass.UnknownRdataclass: the class is unknown
+    @raises ValueError: the rdata class value is not >= 0 and <= 65535
     """
 
     value = _by_text.get(text.upper())
@@ -92,11 +92,11 @@ def from_text(text):
 
 
 def to_text(value):
-    """Convert a DNS rdata type value to text.
-    If the value has a known mnemonic, it will be used, otherwise the
-    DNS generic class syntax will be used.
-    Raises ``ValueError`` if the rdata class value is not >= 0 and <= 65535.
-    Returns a ``str``.
+    """Convert a DNS rdata class to text.
+    @param value: the rdata class value
+    @type value: int
+    @rtype: string
+    @raises ValueError: the rdata class value is not >= 0 and <= 65535
     """
 
     if value < 0 or value > 65535:
@@ -108,10 +108,10 @@ def to_text(value):
 
 
 def is_metaclass(rdclass):
-    """True if the specified class is a metaclass.
-    The currently defined metaclasses are ANY and NONE.
-    *rdclass* is an ``int``.
-    """
+    """True if the class is a metaclass.
+    @param rdclass: the rdata class
+    @type rdclass: int
+    @rtype: bool"""
 
     if rdclass in _metaclasses:
         return True

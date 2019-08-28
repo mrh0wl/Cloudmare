@@ -1,5 +1,3 @@
-# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 # Copyright (C) 2015 Red Hat, Inc.
 #
@@ -18,12 +16,13 @@
 
 import struct
 
-import dns.exception
-import dns.rdata
-import dns.name
+import thirdparty.dns.exception
+import thirdparty.dns.rdata
+import thirdparty.dns.name
+from thirdparty.dns._compat import text_type
 
 
-class URI(dns.rdata.Rdata):
+class URI(thirdparty.dns.rdata.Rdata):
 
     """URI record
 
@@ -32,7 +31,7 @@ class URI(dns.rdata.Rdata):
     @ivar weight: the weight
     @type weight: int
     @ivar target: the target host
-    @type target: dns.name.Name object
+    @type target: thirdparty.dns.name.Name object
     @see: draft-faltstrom-uri-13"""
 
     __slots__ = ['priority', 'weight', 'target']
@@ -42,8 +41,8 @@ class URI(dns.rdata.Rdata):
         self.priority = priority
         self.weight = weight
         if len(target) < 1:
-            raise dns.exception.SyntaxError("URI target cannot be empty")
-        if isinstance(target, str):
+            raise thirdparty.dns.exception.SyntaxError("URI target cannot be empty")
+        if isinstance(target, text_type):
             self.target = target.encode()
         else:
             self.target = target
@@ -58,7 +57,7 @@ class URI(dns.rdata.Rdata):
         weight = tok.get_uint16()
         target = tok.get().unescape()
         if not (target.is_quoted_string() or target.is_identifier()):
-            raise dns.exception.SyntaxError("URI target must be a string")
+            raise thirdparty.dns.exception.SyntaxError("URI target must be a string")
         tok.get_eol()
         return cls(rdclass, rdtype, priority, weight, target.value)
 
@@ -70,7 +69,7 @@ class URI(dns.rdata.Rdata):
     @classmethod
     def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
         if rdlen < 5:
-            raise dns.exception.FormError('URI RR is shorter than 5 octets')
+            raise thirdparty.dns.exception.FormError('URI RR is shorter than 5 octets')
 
         (priority, weight) = struct.unpack('!HH', wire[current: current + 4])
         current += 4
@@ -79,3 +78,4 @@ class URI(dns.rdata.Rdata):
         current += rdlen
 
         return cls(rdclass, rdtype, priority, weight, target)
+

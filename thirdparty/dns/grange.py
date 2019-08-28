@@ -17,6 +17,7 @@
 
 import dns
 
+
 def from_text(text):
     """Convert the text form of a range in a GENERATE statement to an
     integer.
@@ -28,7 +29,6 @@ def from_text(text):
     """
     # TODO, figure out the bounds on start, stop and step.
 
-    import pdb
     step = 1
     cur = ''
     state = 0
@@ -46,10 +46,10 @@ def from_text(text):
         elif c.isdigit():
             cur += c
         else:
-            raise dns.exception.SyntaxError("Could not parse %s" % (c))
+            raise thirdparty.dns.exception.SyntaxError("Could not parse %s" % (c))
 
     if state in (1, 3):
-        raise dns.exception.SyntaxError
+        raise thirdparty.dns.exception.SyntaxError
 
     if state == 2:
         stop = int(cur)

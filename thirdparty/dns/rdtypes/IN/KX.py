@@ -15,6 +15,7 @@
 
 import thirdparty.dns.rdtypes.mxbase
 
+
 class KX(thirdparty.dns.rdtypes.mxbase.UncompressedMX):
+
     """KX record"""
-    pass

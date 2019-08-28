@@ -14,11 +14,14 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import struct
+import binascii
 
 import thirdparty.dns.rdata
 import thirdparty.dns.rdatatype
 
+
 class DSBase(thirdparty.dns.rdata.Rdata):
+
     """Base class for rdata that is like a DS record
 
     @ivar key_tag: the key tag
@@ -44,10 +47,11 @@ class DSBase(thirdparty.dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.key_tag, self.algorithm,
                                 self.digest_type,
-                                dns.rdata._hexify(self.digest,
+                                thirdparty.dns.rdata._hexify(self.digest,
                                                   chunksize=128))
 
-    def from_text(cls, rdclass, rdtype, tok, origin = None, relativize = True):
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         key_tag = tok.get_uint16()
         algorithm = tok.get_uint8()
         digest_type = tok.get_uint8()
@@ -57,36 +61,24 @@ class DSBase(thirdparty.dns.rdata.Rdata):
             if t.is_eol_or_eof():
                 break
             if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value)
-        digest = ''.join(chunks)
-        digest = digest.decode('hex_codec')
+                raise thirdparty.dns.exception.SyntaxError
+            chunks.append(t.value.encode())
+        digest = b''.join(chunks)
+        digest = binascii.unhexlify(digest)
         return cls(rdclass, rdtype, key_tag, algorithm, digest_type,
                    digest)
 
-    from_text = classmethod(from_text)
-
-    def to_wire(self, file, compress = None, origin = None):
+    def to_wire(self, file, compress=None, origin=None):
         header = struct.pack("!HBB", self.key_tag, self.algorithm,
                              self.digest_type)
         file.write(header)
         file.write(self.digest)
 
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin = None):
-        header = struct.unpack("!HBB", wire[current : current + 4])
+    @classmethod
+    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
+        header = struct.unpack("!HBB", wire[current: current + 4])
         current += 4
         rdlen -= 4
-        digest = wire[current : current + rdlen].unwrap()
+        digest = wire[current: current + rdlen].unwrap()
         return cls(rdclass, rdtype, header[0], header[1], header[2], digest)
 
-    from_wire = classmethod(from_wire)
-
-    def _cmp(self, other):
-        hs = struct.pack("!HBB", self.key_tag, self.algorithm,
-                         self.digest_type)
-        ho = struct.pack("!HBB", other.key_tag, other.algorithm,
-                         other.digest_type)
-        v = cmp(hs, ho)
-        if v == 0:
-            v = cmp(self.digest, other.digest)
-        return v

@@ -1,5 +1,3 @@
-# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
-
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -17,12 +15,12 @@
 
 import struct
 
-import dns.exception
-import dns.rdata
-import dns.tokenizer
+import thirdparty.dns.exception
+import thirdparty.dns.rdata
+import thirdparty.dns.tokenizer
 
 
-class CAA(dns.rdata.Rdata):
+class CAA(thirdparty.dns.rdata.Rdata):
 
     """CAA (Certification Authority Authorization) record
 
@@ -44,17 +42,17 @@ class CAA(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%u %s "%s"' % (self.flags,
-                               dns.rdata._escapify(self.tag),
-                               dns.rdata._escapify(self.value))
+                               thirdparty.dns.rdata._escapify(self.tag),
+                               thirdparty.dns.rdata._escapify(self.value))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
         flags = tok.get_uint8()
         tag = tok.get_string().encode()
         if len(tag) > 255:
-            raise dns.exception.SyntaxError("tag too long")
+            raise thirdparty.dns.exception.SyntaxError("tag too long")
         if not tag.isalnum():
-            raise dns.exception.SyntaxError("tag is not alphanumeric")
+            raise thirdparty.dns.exception.SyntaxError("tag is not alphanumeric")
         value = tok.get_string().encode()
         return cls(rdclass, rdtype, flags, tag, value)
 
@@ -73,3 +71,4 @@ class CAA(dns.rdata.Rdata):
         tag = wire[current: current + l]
         value = wire[current + l:current + rdlen - 2]
         return cls(rdclass, rdtype, flags, tag, value)
+

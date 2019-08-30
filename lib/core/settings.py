@@ -25,7 +25,7 @@ config = {
 }
 
 # version (<major>.<minor>.<month>.<day>)
-VERSION = "1.7.8.28"
+VERSION = "1.7.8.30"
 DESCRIPTION = "Automatic CloudProxy and reverse proxy bypass tool"
 ISSUES_PAGE = "https://github.com/MrH0wl/Cloudmare/issues/new"
 GIT_REPOSITORY = "https://github.com/MrH0wl/Cloudmare.git"

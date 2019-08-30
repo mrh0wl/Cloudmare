@@ -16,7 +16,7 @@ def subdomain_tracking(domain):
 			print ("   " + good + "{ip}".format(**entry) + white + " from: " + "{domain}".format(**entry) + end)
 
 	try:
-		print(que + "Enumerating misconfigured DNS subdomains:")
+		print(que + "Enumerating misconfigured results:")
 		for entry in res['dns_records']['host']:
 			provider = str(entry['provider'])
 			ip = str(entry['ip'])

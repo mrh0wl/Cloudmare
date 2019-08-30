@@ -12,7 +12,7 @@ from thirdparty.html_similarity import similarity
 from thirdparty.dns.resolver import Resolver
 
 
-def first_scan(domain,ns):
+def scan(domain,ns):
 	try:
 		print("\n" + yellow +"Tracking IP (Auto DIG)...\n")
 		print(que + "Checking if {0} is similar to {1}".format(ns, domain))
@@ -26,7 +26,7 @@ def first_scan(domain,ns):
 	except requests.exceptions.Timeout:
 		print('   ' + bad + 'Connection cannot be established with: %s'% (ns))
 
-def Checking_DNS(domain, ns):
+def DNSLookup(domain, ns):
 	sys_r = Resolver()
 	dns = [ns]
 	try:

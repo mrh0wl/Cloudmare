@@ -14,12 +14,18 @@ def parse_error(errmsg):
 	exit(1)
 
 def parse_args():
-	parser = argparse.ArgumentParser(epilog="\tExample: \r\npython " + sys.argv[0] + " [DOMAIN] --subdomain")
+	logotype()
+	formatter = lambda prog: argparse.HelpFormatter(prog,max_help_position=100)
+	parser = argparse.ArgumentParser(epilog="\tExample: \r\npython " + sys.argv[0] + " [DOMAIN] --subdomain", formatter_class=formatter)
 	parser.error = parse_error
-	parser._optionals.title = "OPTIONS"
 	parser.add_argument("-v", '--version', action='version', version=NAME + VERSION + ' | '+ COPYRIGHT)
 	parser.add_argument("domain", metavar="[domain]",help="domain to scan")
-	parser.add_argument("-ns", "--nameserver", help="scan with nameserver", action='store', dest='ns', default=None)
-	parser.add_argument("--subdomain", help="search misconfigured subdomain", action="store_true", default=False)
-	parser.add_argument("-o","--output", help="save results in a file", dest='file', default=None)
+	group1 = parser.add_argument_group('PRIMARY OPTIONS', 'arguments necessary and useful')
+	parser1 = group1.add_mutually_exclusive_group()
+	parser1.add_argument("--subdomain", help="search misconfigured subdomain", action="store_true", default=False)
+	parser1.add_argument("-ns", "--nameserver", metavar="ns", help="scan with nameserver", action='store', dest='ns', default=None)
+	group2 = parser.add_argument_group('SECONDARY OPTIONS', 'arguments not necessary, but useful')
+	parser2 = group2.add_mutually_exclusive_group()
+	parser2.add_argument("-o","--output", metavar='out', help="save results in a file", dest='file', default=None)
+	parser2.add_argument("--dns-bruter", help="bruteforce domain extensions", action="store_true", dest='bruter', default=False)
 	return parser.parse_args()

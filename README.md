@@ -33,7 +33,7 @@ $ python cloudmare.py target.site --subdomain
 
 ## Usage
 
-![Help options](http://prntscr.com/ozlqwa "Help options")
+![Help options](https://i.imgur.com/sOC0ZQF.png "Help options")
 
 ## Compatibility
 

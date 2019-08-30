@@ -12,23 +12,27 @@ from lib.parse.colors import white, green, red, yellow, end, info, que, bad, goo
 
 def netcat(domain, ns, count):
 	A = DNSLookup(domain, ns)
-	ip = socket.gethostbyname(ns) if count is 0 else str(A)
+	ip = socket.gethostbyname(str(ns)) if count is 0 else str(A)
+	if not A:
+		print (que + 'Using DIG to get the real IP')
+		print('   ' + bad + 'IP not found using DNS Lookup')
 	url = 'http://' + domain
-	page = requests.get(url, timeout=config['http_timeout_seconds'])
-	http = 'http://' if 'http://' in page.url else 'https://'
-	hncat = page.url.replace(http, '').split('/')[0]
-	home = page.url.replace(http, '').split(hncat)[1]
-	print (que + 'Connecting %s using as Host Header: %s'% (ip, domain))
-	try:	
+	try:
+		page = requests.get(url, timeout=config['http_timeout_seconds'])
+		http = 'http://' if 'http://' in page.url else 'https://'
+		hncat = page.url.replace(http, '').split('/')[0]
+		home = page.url.replace(http, '').split(hncat)[1]
+		print (que + 'Connecting %s using as Host Header: %s'% (ip, domain))	
 		data = requests.get('http://' + ip + home, headers={'host': hncat},timeout=config['http_timeout_seconds'], allow_redirects=False)
 		count =+ 1
 		if data.status_code in [301, 302]:
 			print("   " + info + "Connection redirect to: %s"% data.headers['Location'])
-			quest(question="   " + info + 'Do yo want to redirect? y/n: ', doY='pass', doN="sys.exit()")
+			question = input("   " + info + 'Do yo want to redirect? y/n: ') if sys.version_info[0] == 3 else raw_input("   " + info + 'Do yo want to redirect? y/n: ')
 		try:
 			data = requests.get('http://' + ip + home, headers={'host': hncat},timeout=config['http_timeout_seconds'], allow_redirects=True)
 		except requests.exceptions.ConnectionError:
-			print("   " + bad +'Error while connecting to: %s'%data.headers['Location'])
+			if question in ['y', 'yes', 'ye']:
+				print("   " + bad +'Error while connecting to: %s'%data.headers['Location'])
 		if data.status_code == 200:
 			count =+ 1
 			sim = similarity(data.text, page.text)

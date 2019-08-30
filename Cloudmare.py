@@ -70,8 +70,6 @@ def IPscan(domain):
 			print("   " + bad +"Connection Timeout")
 		except requests.ConnectTimeout:
 			print("   " + bad +"Connection Timeout")
-	while not A:
-		break
 
 if __name__=="__main__":
 	try:

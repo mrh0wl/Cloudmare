@@ -38,5 +38,4 @@ def DNSLookup(domain, ns):
 		for A in answer.rrset.items:
 			return A
 	except Exception:
-		print (que + 'Using DIG to get the real IP')
-		print('   ' + bad + 'IP not found using DNS Lookup')
+		pass

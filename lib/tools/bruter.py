@@ -33,7 +33,8 @@ def bruter(domain):
 		webname = host.split('.')[1].replace('.', '') if 'www' in host else host.split('.')[0]
 		for i in donames:
 			domain = webname + i if '.' not in webname else webname.split(0)
-			good_check.append(domain)
+			if url.replace('http://', '') not in domain:
+				good_check.append(domain)
 		return good_check
 	except requests.exceptions.SSLError:
 		print("   " + bad +'Error handshaking with SSL')
@@ -50,18 +51,24 @@ def nameserver(domain):
 	for item in checking:
 		try:
 			nameservers = thirdparty.dns.resolver.query(item,'NS')
+			MX = thirdparty.dns.resolver.query(item,'MX')
 			for data in nameservers:
 				data = str(data).rstrip('.')
-				if 'cloudflare' not in data and item not in seen:
+				for record in MX:
+					record = str(record).split(' ')[1].rstrip('.')
+					if 'cloudflare' not in data and 'cloudflare' not in record and item not in seen:
 						seen.add(item)
 						good_dns.append(data)
-						print ('   ' + good + str(data) + ' from: ' + item)
-				else:
-					print('   ' + bad + 'DNS appear to belong Cloudflare')
-		except thirdparty.dns.resolver.NXDOMAIN:
+						good_dns.append(record)
+						print ('   ' + good + 'NS Record: ' + str(data) + ' from: ' + item)
+						print ('   ' + good + 'MX Record: ' + str(record) + ' from: ' + item)
+					elif 'cloudflare' in data and 'cloudflare' in record and seen == None:
+						print('   ' + bad + 'DNS appear to belong Cloudflare')
+						break
+		except thirdparty.dns.resolver.NXDOMAIN as e:
+			print('   ' + bad + '%s'%e)
+		except thirdparty.dns.resolver.Timeout as e:
 			pass
-		except thirdparty.dns.resolver.Timeout:
-			pass
-		except thirdparty.dns.exception.DNSException:
+		except thirdparty.dns.exception.DNSException as e:
 			pass
 	return good_dns

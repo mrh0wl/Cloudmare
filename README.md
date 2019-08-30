@@ -33,11 +33,11 @@ $ python cloudmare.py target.site --subdomain
 
 ## Usage
 
-![Help options](https://i.imgur.com/DKQbYz2.png "Help options")
+![Help options](http://prntscr.com/ozlqwa "Help options")
 
 ## Compatibility
 
-Tested on Python 2.7 in Kali Linux. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
+Tested on Python 2.7 and Python 3.7, working on Linux and Windows. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
 
 [open an issue]: https://github.com/MrH0wl/Cloudmare/issues/new
 

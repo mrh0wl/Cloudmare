@@ -45,19 +45,19 @@ def bruter(domain):
 def nameserver(domain):
 	checking = bruter(domain)
 	good_dns = []
-	seen_suffix = set()
-	seen_prefix = set()
+	seen = set()
 	print (que + 'Bruteforcing domain extensions and getting the DNS:')
 	for item in checking:
 		try:
 			nameservers = thirdparty.dns.resolver.query(item,'NS')
 			for data in nameservers:
 				data = str(data).rstrip('.')
-				copy = str(data).split('.')[-2]
-				if 'cloudflare' not in data and copy not in seen_suffix:
-						seen_suffix.add(copy)
+				if 'cloudflare' not in data and item not in seen:
+						seen.add(item)
 						good_dns.append(data)
 						print ('   ' + good + str(data) + ' from: ' + item)
+				else:
+					print('   ' + bad + 'DNS appear to belong Cloudflare')
 		except thirdparty.dns.resolver.NXDOMAIN:
 			pass
 		except thirdparty.dns.resolver.Timeout:

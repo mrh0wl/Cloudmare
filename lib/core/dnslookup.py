@@ -23,8 +23,9 @@ def scan(domain,ns):
 			print ('   ' + good + 'HTML content is %d%% structurally similar to: %s' % (round(100 *page_similarity2, 2), domain))
 		else:
 			print ('   ' + bad + 'Sorry, but HTML content is %d%% structurally similar to: %s' % (round(100 *page_similarity2, 2), domain))
-	except requests.exceptions.Timeout:
+	except Exception:
 		print('   ' + bad + 'Connection cannot be established with: %s'% (ns))
+
 
 def DNSLookup(domain, ns):
 	sys_r = Resolver()

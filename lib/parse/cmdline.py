@@ -8,7 +8,6 @@ from lib.core.settings import logotype, COPYRIGHT, VERSION, NAME
 from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
 
 def parse_error(errmsg):
-	logotype()
 	print("Usage: python " + sys.argv[0] + " [Options] use -h for help")
 	print(bad + errmsg)
 	exit(1)

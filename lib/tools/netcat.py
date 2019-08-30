@@ -28,7 +28,7 @@ def netcat(domain, ns, count):
 		try:
 			data = requests.get('http://' + ip + home, headers={'host': hncat},timeout=config['http_timeout_seconds'], allow_redirects=True)
 		except requests.exceptions.ConnectionError:
-			print("   " + bad +'Error while connecting to: %s'%data.url)
+			print("   " + bad +'Error while connecting to: %s'%data.headers['Location'])
 		if data.status_code == 200:
 			count =+ 1
 			sim = similarity(data.text, page.text)

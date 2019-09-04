@@ -1,6 +1,7 @@
 """
 This is the (unofficial) Python API for dnsdumpster.com Website.
 Using this code, you can retrieve subdomains
+Author: https://github.com/PaulSec/
 """
 
 from __future__ import print_function
@@ -85,7 +86,7 @@ class DNSDumpsterAPI(object):
             )
             return []
 
-        if 'error' in req.content.decode('utf-8'):
+        if 'error getting results' in req.content.decode('utf-8'):
             print("There was an error getting results", file=sys.stderr)
             return []
 

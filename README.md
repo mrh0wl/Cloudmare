@@ -43,9 +43,8 @@ Tested on Python 2.7 and Python 3.7, working on Linux and Windows. Feel free to 
 
 ## Donate BTC
 
-If you wish, you can invite me to a cup of coffee, it only costs 1 USD. If you donate please send me a message on [Twitter] to add you to the "Hall of Donors"
+If you wish, you can invite me to a cup of coffee, it only costs 1 USD.
 
-[Twitter]: https://twitter.com/SecMare
 ```
 >15eDRtaHU1frXFp4RGBHRzLqc26ZvzTsn5
 ```

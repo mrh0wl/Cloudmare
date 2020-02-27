@@ -49,9 +49,3 @@ If you wish, you can invite me to a cup of coffee, it only costs 1 USD. If you d
 ```
 >15eDRtaHU1frXFp4RGBHRzLqc26ZvzTsn5
 ```
-
-## Hall of Donors
-
-```
-1. Anonymous donation (0.001202 BTC)
-```

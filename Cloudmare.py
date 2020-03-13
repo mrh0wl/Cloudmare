@@ -100,6 +100,7 @@ if __name__=="__main__":
 				IPscan(domain)
 		else:
 			parse_error(errmsg='too few arguments, please use "help" argument')
+
 		if file != None:
 			try:
 				with open(file, 'w') as f:

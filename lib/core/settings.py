@@ -89,7 +89,7 @@ class checkImports:
 		self.lib = lib
 		self.errlist = []
 
-	def downloadLib(self, imports):
+	def downloadLib(self):
 		self.errlist.append(self.lib)
 		for i in self.errlist:
 			if i in self.errlist:

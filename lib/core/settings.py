@@ -15,9 +15,7 @@ import sys
 
 from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
 from pip._internal import main as pip
-import thirdparty.urllib3 as urllib3
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 config = {
 	'http_timeout_seconds': 5,
 	'response_similarity_threshold': 0.9

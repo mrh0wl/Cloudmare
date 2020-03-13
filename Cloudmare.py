@@ -5,32 +5,32 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-try:
-	import os
-	import sys 
-	import thirdparty.requests as requests
-	import thirdparty.urllib3 as urllib3
-	from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
-	from lib.parse.cmdline import parse_args, parse_error
-	from lib.core.settings import osclear, quest, logotype, config
-	from lib.tools.netcat import netcat
-	from lib.tools.bruter import nameserver
+from lib.core.settings import quest, logotype, osclear, config, checkImports
+from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
+import os, sys
 
-except KeyboardInterrupt:
-	quest(question=info + 'Are you sure you want to exit? y/n: ', doY="osclear(logotype = logotype(), unknown = bad + 'Sorry, but cannot clear this OS')", doN="pass")
-
-try:
-	import lxml
-except ImportError:
-	quest(question=(info + 'WARNING: A module is required. Do you want to install? y/n: '), doY = "pipmain(['install', 'lxml'])", doN = "sys.exit()")
-from thirdparty.html_similarity import similarity
-from lib.core.dnslookup import scan, DNSLookup
-from thirdparty.dns.resolver import Resolver
-from lib.core.subdomain_finder import subdomain_tracking
+while True:
+	try:
+		import thirdparty.requests as requests
+		from lib.parse.cmdline import parse_args, parse_error
+		from lib.tools.netcat import netcat
+		from lib.tools.bruter import nameserver
+		from thirdparty.html_similarity import similarity
+		from lib.core.dnslookup import scan, DNSLookup
+		from thirdparty.dns.resolver import Resolver
+		from lib.core.subdomain_finder import subdomain_tracking
+		break
+	except ImportError as e:
+		isPy = sys.version_info[0]
+		if isPy == 3:
+			err = e.name
+		else:
+			err = str(e).split('named')[1]
+		checkImports(err).downloadLib()
 
 def make_list():
 	ip_list = subdomain_tracking(domain)
-	lst = [line.strip() for line in ip_list]
+	[line.strip() for line in ip_list]
 	return ip_list
 
 def IPscan(domain):
@@ -44,7 +44,7 @@ def IPscan(domain):
 				org_response = requests.get(url, timeout=config['http_timeout_seconds'])
 			except requests.exceptions.Timeout:
 				sys.stderr.write("   " + bad + "%s timed out after %d seconds\n" % (url, config['http_timeout_seconds']))
-			except requests.exceptions.RequestException as e:
+			except requests.exceptions.RequestException:
 				sys.stderr.write("   " + bad + "Failed to retrieve %s\n" % url)
 			if org_response.status_code != 200:
 				print ('   ' + bad + 'Responded with an unexpected HTTP status code')

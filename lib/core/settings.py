@@ -13,9 +13,8 @@ import re
 import string
 import sys
 
-
 from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
-from pip._internal import main as pipmain
+from pip._internal import main as pip
 import thirdparty.urllib3 as urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -47,39 +46,52 @@ def logotype():
 
 # osclear shortcut
 def osclear(unknown):
-    isOs = sys.platform.lower()
-    if isOs == 'win32':
-        os.system('cls')
-    elif isOs == 'linux':
-        os.system('clear')
-    else:
-      print(unknown)
-      sys.exit()
-    logotype()
-    print (yellow + "\n~ Thanks for using this script! <3")
+	isOs = sys.platform.lower()
+	if 'win32' in isOs:
+		os.system('cls')
+	elif 'linux' in isOs:
+		os.system('clear')
+	else:
+	  print(unknown)
+	  sys.exit()
+	logotype()
+	print (yellow + "\n~ Thanks for using this script! <3")
 
 # question shortcut
-def quest(question, doY, doN):
-    end = ''
-    try:
-        isPy = sys.version_info[0]
-        if isPy == 3:
-            question = input(question)
-        else:
-            question = raw_input(question)
-        if question == 'yes' or question == 'y':
-            try: 
-                exec(doY)
-            except KeyboardInterrupt:
-                sys.exit()
-        elif question == 'no' or question == 'n':
-            exec(doN)
-        else:
-            sys.exit()
-        if end == None:
-            pass
-        else:
-            print(end)
-        
-    except KeyboardInterrupt:
-        sys.exit()
+def quest(question, doY, doN, exportVar = None):
+	end = ''
+	try:
+		isPy = sys.version_info[0]
+		if isPy == 3:
+			question = input(question)
+		else:
+			question = raw_input(question)
+		if question == 'yes' or question == 'y':
+			try: 
+				exec(doY)
+			except KeyboardInterrupt:
+				sys.exit()
+		elif question == 'no' or question == 'n':
+			exec(doN)
+		else:
+			exec(doY)
+		if end == None:
+			pass
+		else:
+			print(end)
+		
+	except KeyboardInterrupt:
+		sys.exit()
+
+#Import Checker and downloader
+class checkImports:
+	def __init__(self, lib):
+		self.lib = lib
+		self.errlist = []
+
+	def downloadLib(self, imports):
+		self.errlist.append(self.lib)
+		for i in self.errlist:
+			if i in self.errlist:
+				quest(question=(info + 'WARNING: ' + red + i + end + ' module is required. Do you want to install? y/n: '), exportVar = i, doY = "pip(['install', exportVar, '--no-python-version-warning', '-q', '--disable-pip-version-check', '--no-warn-conflicts', '--no-warn-script-location']) and sys.exit()", doN = "sys.exit()")
+				

@@ -7,10 +7,9 @@ import thirdparty.dns.exception
 import thirdparty.requests as requests
 from lib.parse.cmdline import parse_args, parse_error
 from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
-from lib.core.settings import config
+from lib.parse.settings import config
 from thirdparty.html_similarity import similarity
 from thirdparty.dns.resolver import Resolver
-
 
 def scan(domain,ns):
 	try:

@@ -7,14 +7,14 @@ import thirdparty.dns.exception
 import thirdparty.requests as requests
 
 from lib.core.dnslookup import DNSLookup
-from lib.core.settings import config, quest
+from lib.parse.settings import config, quest
 from thirdparty.dns.resolver import Resolver
 from lib.parse.cmdline import parse_args, parse_error
 from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
 
 def donames_list():
 	donames = []
-	file_ = "\data\domains.txt"
+	file_ = "/data/domains.txt"
 	path = os.getcwd()+file_
 	with open (path,'r') as f:
 		domlist = [line.strip() for line in f]

@@ -5,7 +5,7 @@ import thirdparty.six as six
 import thirdparty.requests as requests
 import thirdparty.urllib3 as urllib3
 
-from lib.core.settings import config, quest
+from lib.parse.settings import config, quest
 from thirdparty.html_similarity import similarity
 from lib.core.dnslookup import DNSLookup
 from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run

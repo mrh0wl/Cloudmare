@@ -30,6 +30,6 @@ def subdomain_tracking(domain):
 				ip_takes.append('{ip}'.format(**entry))
 				print ("   " + good + "{ip}".format(**entry) + " from: " + "{domain}".format(**entry) + end)
 		return ip_takes
-	except:
+	except Exception:
 		print("   " + bad + "Subdomains and DNS records belong Cloudflare Network" + end)
 		exit(1)

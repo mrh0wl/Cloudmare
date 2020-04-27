@@ -54,7 +54,7 @@ if __name__=="__main__":
 				nameservers = nameserver(domain)
 				nameservers.append(args.ns)
 			if censysio == True:
-    				CensysIP = censys(domain)
+				CensysIP = censys(domain)
 				ip_takes.extend(CensysIP)
 			list_length = len(nameservers) if brute is True else 1
 			for i in range(0, list_length):

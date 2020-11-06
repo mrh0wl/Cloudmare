@@ -15,11 +15,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.txtbase
+import thirdparty.dns.rdtypes.txtbase
 
 
-class AVC(dns.rdtypes.txtbase.TXTBase):
+class AVC(thirdparty.dns.rdtypes.txtbase.TXTBase):
 
-    """AVC record
+    """AVC record"""
 
-    @see: U{http://www.iana.org/assignments/dns-parameters/AVC/avc-completed-template}"""
+    # See: IANA dns parameters for AVC

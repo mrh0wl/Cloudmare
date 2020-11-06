@@ -76,7 +76,7 @@ class Selector(object):
         #: +-------------------------+----------------+--------------------------------+
         #: | Invalid pseudo-class    | ``li:marker``  | ``None``                       |
         #: +-------------------------+----------------+--------------------------------+
-        #: | Functinal               | ``a::foo(2)``  | ``FunctionalPseudoElement(…)`` |
+        #: | Functional              | ``a::foo(2)``  | ``FunctionalPseudoElement(…)`` |
         #: +-------------------------+----------------+--------------------------------+
         #:
         #: .. _Lists3: http://www.w3.org/TR/2011/WD-css3-lists-20110524/#marker-pseudoelement
@@ -91,6 +91,20 @@ class Selector(object):
             pseudo_element = ''
         return '%s[%r%s]' % (
             self.__class__.__name__, self.parsed_tree, pseudo_element)
+
+    def canonical(self):
+        """Return a CSS representation for this selector (a string)
+        """
+        if isinstance(self.pseudo_element, FunctionalPseudoElement):
+            pseudo_element = '::%s' % self.pseudo_element.canonical()
+        elif self.pseudo_element:
+            pseudo_element = '::%s' % self.pseudo_element
+        else:
+            pseudo_element = ''
+        res = '%s%s' % (self.parsed_tree.canonical(), pseudo_element)
+        if len(res) > 1:
+            res = res.lstrip('*')
+        return res
 
     def specificity(self):
         """Return the specificity_ of this selector as a tuple of 3 integers.
@@ -115,6 +129,9 @@ class Class(object):
     def __repr__(self):
         return '%s[%r.%s]' % (
             self.__class__.__name__, self.selector, self.class_name)
+
+    def canonical(self):
+        return '%s.%s' % (self.selector.canonical(), self.class_name)
 
     def specificity(self):
         a, b, c = self.selector.specificity()
@@ -151,6 +168,10 @@ class FunctionalPseudoElement(object):
     def argument_types(self):
         return [token.type for token in self.arguments]
 
+    def canonical(self):
+        args = ''.join(token.css() for token in self.arguments)
+        return '%s(%s)' % (self.name, args)
+
     def specificity(self):
         a, b, c = self.selector.specificity()
         b += 1
@@ -174,6 +195,10 @@ class Function(object):
     def argument_types(self):
         return [token.type for token in self.arguments]
 
+    def canonical(self):
+        args = ''.join(token.css() for token in self.arguments)
+        return '%s:%s(%s)' % (self.selector.canonical(), self.name, args)
+
     def specificity(self):
         a, b, c = self.selector.specificity()
         b += 1
@@ -192,6 +217,9 @@ class Pseudo(object):
         return '%s[%r:%s]' % (
             self.__class__.__name__, self.selector, self.ident)
 
+    def canonical(self):
+        return '%s:%s' % (self.selector.canonical(), self.ident)
+
     def specificity(self):
         a, b, c = self.selector.specificity()
         b += 1
@@ -209,6 +237,12 @@ class Negation(object):
     def __repr__(self):
         return '%s[%r:not(%r)]' % (
             self.__class__.__name__, self.selector, self.subselector)
+
+    def canonical(self):
+        subsel = self.subselector.canonical()
+        if len(subsel) > 1:
+            subsel = subsel.lstrip('*')
+        return '%s:not(%s)' % (self.selector.canonical(), subsel)
 
     def specificity(self):
         a1, b1, c1 = self.selector.specificity()
@@ -238,7 +272,20 @@ class Attrib(object):
         else:
             return '%s[%r[%s %s %r]]' % (
                 self.__class__.__name__, self.selector, attrib,
-                self.operator, self.value)
+                self.operator, self.value.value)
+
+    def canonical(self):
+        if self.namespace:
+            attrib = '%s|%s' % (self.namespace, self.attrib)
+        else:
+            attrib = self.attrib
+
+        if self.operator == 'exists':
+            op = attrib
+        else:
+            op = '%s%s%s' % (attrib, self.operator, self.value.css())
+
+        return '%s[%s]' % (self.selector.canonical(), op)
 
     def specificity(self):
         a, b, c = self.selector.specificity()
@@ -258,10 +305,13 @@ class Element(object):
         self.element = element
 
     def __repr__(self):
+        return '%s[%s]' % (self.__class__.__name__, self.canonical())
+
+    def canonical(self):
         element = self.element or '*'
         if self.namespace:
             element = '%s|%s' % (self.namespace, element)
-        return '%s[%s]' % (self.__class__.__name__, element)
+        return element
 
     def specificity(self):
         if self.element:
@@ -281,6 +331,9 @@ class Hash(object):
     def __repr__(self):
         return '%s[%r#%s]' % (
             self.__class__.__name__, self.selector, self.id)
+
+    def canonical(self):
+        return '%s#%s' % (self.selector.canonical(), self.id)
 
     def specificity(self):
         a, b, c = self.selector.specificity()
@@ -302,6 +355,13 @@ class CombinedSelector(object):
             comb = self.combinator
         return '%s[%r %s %r]' % (
             self.__class__.__name__, self.selector, comb, self.subselector)
+
+    def canonical(self):
+        subsel = self.subselector.canonical()
+        if len(subsel) > 1:
+            subsel = subsel.lstrip('*')
+        return '%s %s %s' % (
+            self.selector.canonical(), self.combinator, subsel)
 
     def specificity(self):
         a1, b1, c1 = self.selector.specificity()
@@ -430,6 +490,9 @@ def parse_simple_selector(stream, inside_negation=False):
         elif peek == ('DELIM', '.'):
             stream.next()
             result = Class(result, stream.next_ident())
+        elif peek == ('DELIM', '|'):
+            stream.next()
+            result = Element(None, stream.next_ident())
         elif peek == ('DELIM', '['):
             stream.next()
             result = parse_attrib(result, stream)
@@ -452,6 +515,13 @@ def parse_simple_selector(stream, inside_negation=False):
                 continue
             if stream.peek() != ('DELIM', '('):
                 result = Pseudo(result, ident)
+                if result.__repr__() == 'Pseudo[Element[*]:scope]':
+                    if not (len(stream.used) == 2 or
+                            (len(stream.used) == 3
+                             and stream.used[0].type == 'S')):
+                        raise SelectorSyntaxError(
+                            'Got immediate child pseudo-element ":scope" '
+                            'not at the start of a selector')
                 continue
             stream.next()
             stream.skip_whitespace()
@@ -536,7 +606,7 @@ def parse_attrib(selector, stream):
     if next != ('DELIM', ']'):
         raise SelectorSyntaxError(
             "Expected ']', got %s" % (next,))
-    return Attrib(selector, namespace, attrib, op, value.value)
+    return Attrib(selector, namespace, attrib, op, value)
 
 
 def parse_series(tokens):
@@ -590,6 +660,12 @@ class Token(tuple):
 
     type = property(operator.itemgetter(0))
     value = property(operator.itemgetter(1))
+
+    def css(self):
+        if self.type == 'STRING':
+            return repr(self.value)
+        else:
+            return self.value
 
 
 class EOFToken(Token):

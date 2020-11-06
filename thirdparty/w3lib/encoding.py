@@ -109,7 +109,7 @@ DEFAULT_ENCODING_TRANSLATION = {
 }
 
 def _c18n_encoding(encoding):
-    """Cannonicalize an encoding name
+    """Canonicalize an encoding name
 
     This performs normalization and translates aliases using python's
     encoding aliases

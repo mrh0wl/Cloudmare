@@ -8,19 +8,19 @@ def headers_raw_to_dict(headers_raw):
 
     For example:
 
-    >>> import thirdparty.w3lib.http
-    >>> thirdparty.w3lib.http.headers_raw_to_dict(b"Content-type: text/html\n\rAccept: gzip\n\n")   # doctest: +SKIP
+    >>> import w3lib.http
+    >>> w3lib.http.headers_raw_to_dict(b"Content-type: text/html\n\rAccept: gzip\n\n")   # doctest: +SKIP
     {'Content-type': ['text/html'], 'Accept': ['gzip']}
 
     Incorrect input:
 
-    >>> thirdparty.w3lib.http.headers_raw_to_dict(b"Content-typt gzip\n\n")
+    >>> w3lib.http.headers_raw_to_dict(b"Content-typt gzip\n\n")
     {}
     >>>
 
     Argument is ``None`` (return ``None``):
 
-    >>> thirdparty.w3lib.http.headers_raw_to_dict(None)
+    >>> w3lib.http.headers_raw_to_dict(None)
     >>>
 
     """
@@ -52,8 +52,8 @@ def headers_dict_to_raw(headers_dict):
 
     For example:
 
-    >>> import thirdparty.w3lib.http
-    >>> thirdparty.w3lib.http.headers_dict_to_raw({b'Content-type': b'text/html', b'Accept': b'gzip'}) # doctest: +SKIP
+    >>> import w3lib.http
+    >>> w3lib.http.headers_dict_to_raw({b'Content-type': b'text/html', b'Accept': b'gzip'}) # doctest: +SKIP
     'Content-type: text/html\\r\\nAccept: gzip'
     >>>
 
@@ -61,7 +61,7 @@ def headers_dict_to_raw(headers_dict):
 
     Argument is ``None`` (returns ``None``):
 
-    >>> thirdparty.w3lib.http.headers_dict_to_raw(None)
+    >>> w3lib.http.headers_dict_to_raw(None)
     >>>
 
     """
@@ -82,8 +82,8 @@ def basic_auth_header(username, password, encoding='ISO-8859-1'):
     """
     Return an `Authorization` header field value for `HTTP Basic Access Authentication (RFC 2617)`_
 
-    >>> import thirdparty.w3lib.http
-    >>> thirdparty.w3lib.http.basic_auth_header('someuser', 'somepass')
+    >>> import w3lib.http
+    >>> w3lib.http.basic_auth_header('someuser', 'somepass')
     'Basic c29tZXVzZXI6c29tZXBhc3M='
 
     .. _HTTP Basic Access Authentication (RFC 2617): http://www.ietf.org/rfc/rfc2617.txt

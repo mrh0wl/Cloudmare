@@ -20,6 +20,7 @@ from .exceptions import (
     ResponseNotChunked,
     IncompleteRead,
     InvalidHeader,
+    HTTPError,
 )
 from .packages.six import string_types as basestring, PY3
 from .packages.six.moves import http_client as httplib
@@ -106,11 +107,10 @@ if brotli is not None:
         # are for 'brotlipy' and bottom branches for 'Brotli'
         def __init__(self):
             self._obj = brotli.Decompressor()
-
-        def decompress(self, data):
             if hasattr(self._obj, "decompress"):
-                return self._obj.decompress(data)
-            return self._obj.process(data)
+                self.decompress = self._obj.decompress
+            else:
+                self.decompress = self._obj.process
 
         def flush(self):
             if hasattr(self._obj, "flush"):
@@ -276,6 +276,17 @@ class HTTPResponse(io.IOBase):
 
         self._pool._put_conn(self._connection)
         self._connection = None
+
+    def drain_conn(self):
+        """
+        Read and discard any remaining HTTP response data in the response connection.
+
+        Unread data in the HTTPResponse connection blocks the connection from being released back to the pool.
+        """
+        try:
+            self.read()
+        except (HTTPError, SocketError, BaseSSLError, HTTPException):
+            pass
 
     @property
     def data(self):
@@ -792,7 +803,7 @@ class HTTPResponse(io.IOBase):
             return self._request_url
 
     def __iter__(self):
-        buffer = [b""]
+        buffer = []
         for chunk in self.stream(decode_content=True):
             if b"\n" in chunk:
                 chunk = chunk.split(b"\n")

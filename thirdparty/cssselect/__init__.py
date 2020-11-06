@@ -18,5 +18,5 @@ from thirdparty.cssselect.parser import (parse, Selector, FunctionalPseudoElemen
 from thirdparty.cssselect.xpath import GenericTranslator, HTMLTranslator, ExpressionError
 
 
-VERSION = '1.0.3'
+VERSION = '1.1.0'
 __version__ = VERSION

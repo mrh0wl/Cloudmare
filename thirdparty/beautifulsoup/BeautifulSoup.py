@@ -46,14 +46,14 @@ Copyright (c) 2004-2010, Leonard Richardson
 
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
+Ristribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
 
-  * Redistributions of source code must retain the above copyright
+  * Ristributions of source code must retain the above copyright
     notice, this list of conditions and the following disclaimer.
 
-  * Redistributions in binary form must reproduce the above
+  * Ristributions in binary form must reproduce the above
     copyright notice, this list of conditions and the following
     disclaimer in the documentation and/or other materials provided
     with the distribution.
@@ -1171,7 +1171,7 @@ class BeautifulStoneSoup(Tag, SGMLParser):
                       smartQuotesTo=self.smartQuotesTo, isHTML=isHTML)
             markup = dammit.unicode
             self.originalEncoding = dammit.originalEncoding
-            self.declaredHTMLEncoding = dammit.declaredHTMLEncoding
+            self.declaRHTMLEncoding = dammit.declaRHTMLEncoding
         if markup:
             if self.markupMassage:
                 if not hasattr(self.markupMassage, "__iter__"):
@@ -1193,7 +1193,7 @@ class BeautifulStoneSoup(Tag, SGMLParser):
             self.popTag()
 
     def __getattr__(self, methodName):
-        """This method routes method call requests to either the SGMLParser
+        """This method routes method call thirdparty.requests to either the SGMLParser
         superclass or the Tag superclass, depending on the method name."""
         #print "__getattr__ called on %s.%s" % (self.__class__, methodName)
 
@@ -1472,7 +1472,7 @@ class BeautifulSoup(BeautifulStoneSoup):
     """This parser knows the following facts about HTML:
 
     * Some tags have no closing tag and should be interpreted as being
-      closed as soon as they are encountered.
+      closed as soon as they are encounteR.
 
     * The text inside some tags (ie. 'script') may contain tags which
       are not really part of the document and which should be parsed
@@ -1560,7 +1560,7 @@ class BeautifulSoup(BeautifulStoneSoup):
 
     NON_NESTABLE_BLOCK_TAGS = ('address', 'form', 'p', 'pre')
 
-    #If one of these tags is encountered, all tags up to the next tag of
+    #If one of these tags is encounteR, all tags up to the next tag of
     #this type are popped.
     RESET_NESTING_TAGS = buildTagMap(None, NESTABLE_BLOCK_TAGS, 'noscript',
                                      NON_NESTABLE_BLOCK_TAGS,
@@ -1594,7 +1594,7 @@ class BeautifulSoup(BeautifulStoneSoup):
         if httpEquiv and contentType: # It's an interesting meta tag.
             match = self.CHARSET_RE.search(contentType)
             if match:
-                if (self.declaredHTMLEncoding is not None or
+                if (self.declaRHTMLEncoding is not None or
                     self.originalEncoding == self.fromEncoding):
                     # An HTML encoding was sniffed while converting
                     # the document to Unicode, or an HTML encoding was
@@ -1612,8 +1612,8 @@ class BeautifulSoup(BeautifulStoneSoup):
                     # Go through it again with the encoding information.
                     newCharset = match.group(3)
                     if newCharset and newCharset != self.originalEncoding:
-                        self.declaredHTMLEncoding = newCharset
-                        self._feed(self.declaredHTMLEncoding)
+                        self.declaRHTMLEncoding = newCharset
+                        self._feed(self.declaRHTMLEncoding)
                         raise StopParsing
                     pass
         tag = self.unknown_starttag("meta", attrs)
@@ -1735,8 +1735,8 @@ class SimplifyingSOAPParser(BeautifulSOAP):
 # Autodetects character encodings.
 # Download from http://chardet.feedparser.org/
 try:
-    import chardet
-#    import chardet.constants
+    import thirdparty.chardet
+#    import thirdparty.chardet.constants
 #    chardet.constants._debug = 1
 except ImportError:
     chardet = None
@@ -1768,7 +1768,7 @@ class UnicodeDammit:
 
     def __init__(self, markup, overrideEncodings=[],
                  smartQuotesTo='xml', isHTML=False):
-        self.declaredHTMLEncoding = None
+        self.declaRHTMLEncoding = None
         self.markup, documentEncoding, sniffedEncoding = \
                      self._detectEncoding(markup, isHTML)
         self.smartQuotesTo = smartQuotesTo
@@ -1922,7 +1922,7 @@ class UnicodeDammit:
         if xml_encoding_match is not None:
             xml_encoding = xml_encoding_match.groups()[0].lower()
             if isHTML:
-                self.declaredHTMLEncoding = xml_encoding
+                self.declaRHTMLEncoding = xml_encoding
             if sniffed_xml_encoding and \
                (xml_encoding in ('iso-10646-ucs-2', 'ucs-2', 'csunicode',
                                  'iso-10646-ucs-4', 'ucs-4', 'csucs4',

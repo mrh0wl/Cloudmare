@@ -16,7 +16,7 @@ def get_tags(doc):
     for el in doc.getroot().iter():
         if isinstance(el, lxml.html.HtmlElement):
             tags.append(el.tag)
-        if (lambda el: el.startswith('<?xml')):
+        elif (lambda el: el.startswith('<?xml')):
             pass
         elif isinstance(el, lxml.html.HtmlComment):
             tags.append('comment')

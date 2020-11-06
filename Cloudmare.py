@@ -5,81 +5,79 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-from lib.parse.settings import quest, logotype, osclear, config, checkImports
-from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
-import os, sys
+import sys
+from lib.parse.cmdline import parser_cmd
+from lib.parse.settings import logotype, osclear, checkImports, PYVERSION
+from lib.parse.colors import info, bad
 
 while True:
 	try:
-		import thirdparty.requests as requests
-		from lib.parse.cmdline import parse_args, parse_error
-		from lib.core.ipscan import IPscan, make_list
+		from lib.analyzer.ipscan import IPscan
+		from lib.analyzer.dnslookup import scan, DNSLookup
+		from lib.tools import sublist3r
 		from lib.tools.netcat import netcat
 		from lib.tools.bruter import nameserver
 		from lib.tools.censys import censys
-		from thirdparty.html_similarity import similarity
-		from lib.core.dnslookup import scan, DNSLookup
-		from thirdparty.dns.resolver import Resolver
-		from lib.tools.subdomain_finder import subdomain_tracking
+		from lib.tools.shodan import shodan
 		break
-	except ImportError as e:
-		isPy = sys.version_info[0]
-		if isPy == 3:
-			err = e.name
-		else:
-			err = str(e).split('named')[1]
+	except Exception as e:
+		err = e.name if PYVERSION.startswith('3') else str(e).split('named')[1]
 		checkImports(err).downloadLib()
+
 
 if __name__=="__main__":
 	try:
-		args = parse_args()
-		domain, file, brute, censysio = args.domain,args.file, args.bruter, args.censys
-		if args.subdomain == True and args.ns == None:
-			ip_takes = make_list(domain)
-			if brute == True:
-				nameservers = nameserver(domain)
-				ip_takes.extend(nameservers)
-			if censysio == True:
-				CensysIP = censys(domain)
-				ip_takes.extend(CensysIP)
-			list_length = len(ip_takes)
+		args, parsErr = parser_cmd()
+		output = "data/output/subdomains-from-" + (args.domain).split('.')[0] + ".txt" if args.outSub == None else False
+
+		if args.disableSub == False:
+			args.subbrute = False
+			subdomain = sublist3r.main(args.domain, args.threads, output, ports=None, silent=False, verbose=args.verbose, enable_bruteforce=args.subbrute, engines=None)
+			if len(subdomain) == 0 and not any((args.host, args.brute, args.subbrute, args.searchG, args.searchA, args.searchS, args.censys, args.shodan, args.trails)):
+				logotype()
+				parsErr("cannot continue with tasks. Add another argument to task (e.g. \"--host\", \"--bruter\", \"--search-good\", \"--search-scrape\")")
+		else: 
+			subdomain = []
+		if args.headers != None and 'host:' in args.headers:
+			logotype()
+			parsErr("Remove the 'host:' header from the '--header' argument. Instead use '--host' argument")
+
+		if args.host != None:
+			nameservers = []
+			if args.brute == True:
+				nameservers = nameserver(args.domain)
+				nameservers.append(args.host)
+			if args.censys != None:
+				CensysIP = censys(args.domain, args.censys)
+				subdomain.extend(CensysIP)
+			if args.shodan != None:
+				ShodanIP = shodan(args.domain, args.shodan)
+				subdomain.extend(ShodanIP)
+			list_length = len(nameservers) if args.brute == True else 1
 			for i in range(0, list_length):
-				ns = ip_takes[i]
-				scan(domain, ns)
-				netcat(domain, ns, count=0)
-				A = DNSLookup(domain, ns)
-				IPscan(domain, ns, A)
-		elif args.ns != None and args.subdomain == False:
-			if brute == True:
-				nameservers = nameserver(domain)
-				nameservers.append(args.ns)
-			if censysio == True:
-				CensysIP = censys(domain)
-				ip_takes.extend(CensysIP)
-			list_length = len(nameservers) if brute is True else 1
-			for i in range(0, list_length):
-				ns = nameservers[i] if brute is True else args.ns
-				scan(domain, ns)
-				netcat(domain, ns, count=0)
-				A = DNSLookup(domain, ns)
-				IPscan(domain, ns, A)
+				host = nameservers[i] if args.brute == True else args.host
+				scan(args.domain, host, args.uagent, args.randomAgent, args.headers)
+				netcat(args.domain, host, args.ignoreRedirects, args.uagent, args.randomAgent, args.headers, count=0)
+				A = DNSLookup(args.domain, host)
+				IPscan(args.domain, host, A, args.uagent, args.randomAgent, args.headers, args)
 		else:
-			parse_error(errmsg='too few arguments, please use "help" argument')
-
-		if file != None:
-			try:
-				with open(file, 'w') as f:
-					for ips in ns or ips in ip_takes:
-						f.writelines(ips+"\n")
-						if A != None:
-							f.writelines(str(A)+"\n")
-						print(info + 'Saved %d IP into output file %s' % (len([ips]), os.path.abspath(file)))
-						if ips in ips:
-							break
-			except IOError as e:
-				print('   '+ bad +'Unable to write to output file %s : %s\n' % (file, e))
-
+			if args.brute == True:
+				nameservers = nameserver(args.domain)
+				subdomain.extend(nameservers)
+			if args.censys != None:
+				CensysIP = censys(args.domain, args.censys)
+				subdomain.extend(CensysIP)
+			if args.shodan != None:
+				ShodanIP = shodan(args.domain, args.shodan)
+				subdomain.extend(ShodanIP)
+			list_length = len(subdomain)
+			for i in range(0, list_length):
+				host = subdomain[i]
+				scan(args.domain, host, args.uagent, args.randomAgent, args.headers)
+				netcat(args.domain, host, args.ignoreRedirects, args.uagent, args.randomAgent, args.headers, count=0)
+				A = DNSLookup(args.domain, host)
+				IPscan(args.domain, host, A, args.uagent, args.randomAgent, args.headers, args)
 	except KeyboardInterrupt:
-		question = input(info + '[INFO] Do you want to clear the screen? y/n: ') if sys.version_info[0] == 3 else raw_input(info + '[INFO] Do you want to clear the screen? y/n: ')
+		question = input('\n' + info + 'Do you want to clear the screen? y/n: ') if sys.version_info[0] == 3 else raw_input(info + '[INFO] Do you want to clear the screen? y/n: ')
 		if question in ["yes", "y", "Y", "ye"]:
-			osclear(unknown= bad + "   " +"Sorry, but I cannot clear this OS")
+			osclear(unknown= bad + "   " +" Sorry, but I cannot clear this OS")

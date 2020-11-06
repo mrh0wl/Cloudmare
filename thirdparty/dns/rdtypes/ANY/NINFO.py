@@ -15,10 +15,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.txtbase
+import thirdparty.dns.rdtypes.txtbase
 
 
-class NINFO(dns.rdtypes.txtbase.TXTBase):
+class NINFO(thirdparty.dns.rdtypes.txtbase.TXTBase):
 
-    """NINFO record
-    @see: draft-reid-dnsext-zs-01"""
+    """NINFO record"""
+
+    # see: draft-reid-dnsext-zs-01

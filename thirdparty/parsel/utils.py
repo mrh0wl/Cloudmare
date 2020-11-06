@@ -1,5 +1,5 @@
 import re
-import six
+import thirdparty.six as six
 from thirdparty.w3lib.html import replace_entities as w3lib_replace_entities
 
 
@@ -22,7 +22,7 @@ def flatten(x):
 
 
 def iflatten(x):
-    """iflatten(sequence) -> iterator
+    """iflatten(sequence) -> Iterator
     Similar to ``.flatten()``, but returns iterator instead"""
     for el in x:
         if _is_listlike(el):

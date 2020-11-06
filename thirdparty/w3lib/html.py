@@ -5,8 +5,8 @@ Functions for dealing with markup text
 
 import warnings
 import re
-import six
-from six import moves
+import thirdparty.six as six
+from thirdparty.six import moves
 
 from thirdparty.w3lib.util import to_bytes, to_unicode
 from thirdparty.w3lib.url import safe_url_string
@@ -122,7 +122,7 @@ def replace_tags(text, token='', encoding=None):
     return _tag_re.sub(token, to_unicode(text, encoding))
 
 
-_REMOVECOMMENTS_RE = re.compile(u'<!--.*?-->', re.DOTALL)
+_REMOVECOMMENTS_RE = re.compile(u'<!--.*?(?:-->|$)', re.DOTALL)
 def remove_comments(text, encoding=None):
     """ Remove HTML Comments.
 
@@ -175,15 +175,13 @@ def remove_tags(text, which_ones=(), keep=(), encoding=None):
 
     >>> w3lib.html.remove_tags(doc, which_ones=('a',), keep=('p',))
     Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/usr/local/lib/python2.7/dist-packages/w3lib/html.py", line 101, in remove_tags
-        assert not (which_ones and keep), 'which_ones and keep can not be given at the same time'
-    AssertionError: which_ones and keep can not be given at the same time
+        ...
+    ValueError: Cannot use both which_ones and keep
     >>>
 
     """
-
-    assert not (which_ones and keep), 'which_ones and keep can not be given at the same time'
+    if which_ones and keep:
+        raise ValueError('Cannot use both which_ones and keep')
 
     which_ones = {tag.lower() for tag in which_ones}
     keep = {tag.lower() for tag in keep}

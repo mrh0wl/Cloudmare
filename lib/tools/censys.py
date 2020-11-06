@@ -1,31 +1,33 @@
-import os, sys
 import thirdparty.censys.ipv4
+from lib.parse.colors import info, que, bad, tab
+from lib.parse.settings import PYVERSION
 
-from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
+try:
+	from configparser import ConfigParser
+except:
+	from ConfigParser import ConfigParser
 
-def censys(domain):
+def censys(domain, conf):
+	config = ConfigParser()
+	config.read(conf)
 	censys_ip = []
-	creds = None if os.path.getsize('./data/censys_api.txt') is 0 else open('./data/censys_api.txt','r').read()
-	creds = creds.split(":") if creds is not None else None
-	if creds != None:
-		ID = creds[0]
-		SECRET = creds[1]
-	
-	elif sys.version_info[0] == 3:
-		ID = input("\n" +info + 'Please enter your censys ID: ')
-		SECRET = input(info + 'Now, please enter your censys SECRET: ')
+	print(que + 'Enumerating historical data from: %s using Censys.io' % domain)
+	if PYVERSION.startswith('3'):
+		ID = input(tab + info + 'Please enter your censys ID: ') if config.get('CENSYS', 'API_ID') == '' else config.get('CENSYS', 'API_ID')
+		SECRET = input(tab + info + 'Now, please enter your censys SECRET: ') if config.get('CENSYS', 'SECRET') == '' else config.get('CENSYS', 'SECRET')
 
 	else:
-		ID = raw_input(info + 'Please enter your censys ID: ')
-		SECRET = raw_input(info + 'Now, please enter your censys SECRET: ')
-	try:
-		if creds == None:
-			question = input(que + 'Do you want to save your censys.io credentials? y/n: ') if sys.version_info[0] == 3 else raw_input(que + 'Do you want to save your censys.io credentials? y/n: ')
-			if question in ["yes", "y", "Y", "ye"]:
-				with open("./data/censys_api.txt","w") as f:
-					f.write("{0}:{1}".format(ID, SECRET))	
-	except:
-		pass
+		ID = raw_input(tab + info + 'Please enter your censys ID: ') if config.get('CENSYS', 'API_ID') == '' else config.get('CENSYS', 'API_ID')
+		SECRET = raw_input(tab + info + 'Now, please enter your censys SECRET: ') if config.get('CENSYS', 'SECRET') == '' else config.get('CENSYS', 'SECRET')
+
+	if config.get('CENSYS', 'API_ID') == '' or config.get('CENSYS', 'SECRET') == '':
+		question = input(tab + info + 'Do you want to save your censys.io credentials? y/n: ') if PYVERSION.startswith('3') else raw_input(que + 'Do you want to save your censys.io credentials? y/n: ')
+		if question in ["yes", "y", "Y", "ye"]:
+			config.set('CENSYS', 'API_ID', ID)
+			config.set('CENSYS', 'SECRET', SECRET)
+
+		with open('data/APIs/api.conf', 'w') as configfile:
+			config.write(configfile)
 	try:
 		ip = ['ip']
 		c = thirdparty.censys.ipv4.CensysIPv4(api_id=ID, api_secret=SECRET)

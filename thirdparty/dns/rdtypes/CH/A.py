@@ -15,56 +15,42 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.mxbase
+import thirdparty.dns.rdtypes.mxbase
 import struct
 
-class A(dns.rdtypes.mxbase.MXBase):
+class A(thirdparty.dns.rdata.Rdata):
 
-    """A record for Chaosnet
-    @ivar domain: the domain of the address
-    @type domain: dns.name.Name object
-    @ivar address: the 16-bit address
-    @type address: int"""
+    """A record for Chaosnet"""
+
+    # domain: the domain of the address
+    # address: the 16-bit address
 
     __slots__ = ['domain', 'address']
 
-    def __init__(self, rdclass, rdtype, address, domain):
-        super(A, self).__init__(rdclass, rdtype, address, domain)
-        self.domain = domain
-        self.address = address
+    def __init__(self, rdclass, rdtype, domain, address):
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'domain', domain)
+        object.__setattr__(self, 'address', address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         domain = self.domain.choose_relativity(origin, relativize)
         return '%s %o' % (domain, self.address)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        domain = tok.get_name()
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        domain = tok.get_name(origin, relativize, relativize_to)
         address = tok.get_uint16(base=8)
-        domain = domain.choose_relativity(origin, relativize)
         tok.get_eol()
-        return cls(rdclass, rdtype, address, domain)
+        return cls(rdclass, rdtype, domain, address)
 
-    def to_wire(self, file, compress=None, origin=None):
-        self.domain.to_wire(file, compress, origin)
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        self.domain.to_wire(file, compress, origin, canonicalize)
         pref = struct.pack("!H", self.address)
         file.write(pref)
 
-    def to_digestable(self, origin=None):
-        return self.domain.to_digestable(origin) + \
-            struct.pack("!H", self.address)
-
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (domain, cused) = dns.name.from_wire(wire[: current + rdlen-2],
-                                               current)
-        current += cused
-        (address,) = struct.unpack('!H', wire[current: current + 2])
-        if cused+2 != rdlen:
-            raise dns.exception.FormError
-        if origin is not None:
-            domain = domain.relativize(origin)
-        return cls(rdclass, rdtype, address, domain)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        self.domain = self.domain.choose_relativity(origin, relativize)
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        domain = parser.get_name(origin)
+        address = parser.get_uint16()
+        return cls(rdclass, rdtype, domain, address)

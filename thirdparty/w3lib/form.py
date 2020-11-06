@@ -1,10 +1,10 @@
 import warnings
-import six
+import thirdparty.six as six
 if six.PY2:
     from cStringIO import StringIO as BytesIO
 else:
     from io import BytesIO
-from thirdparty.w3lib.util import unicode_to_str
+from w3lib.util import unicode_to_str
 
 
 def encode_multipart(data):
@@ -13,7 +13,7 @@ def encode_multipart(data):
     .. warning::
 
         This function is deprecated and will be removed in future.
-        Please use ``urllib3.filepost.encode_multipart_formdata`` instead.
+        Please use ``thirdparty.urllib3.filepost.encode_multipart_formdata`` instead.
 
     Encode the given data to be used in a multipart HTTP POST.
 
@@ -39,7 +39,7 @@ def encode_multipart(data):
     warnings.warn(
         "`w3lib.form.encode_multipart` function is deprecated and "
         "will be removed in future releases. Please use "
-        "`urllib3.filepost.encode_multipart_formdata` instead.",
+        "`thirdparty.urllib3.filepost.encode_multipart_formdata` instead.",
         DeprecationWarning
     )
 

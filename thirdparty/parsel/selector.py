@@ -3,17 +3,27 @@ XPath selectors based on lxml
 """
 
 import sys
-import six
+
+import thirdparty.six as six
 from lxml import etree, html
 
 from .utils import flatten, iflatten, extract_regex, shorten
 from .csstranslator import HTMLTranslator, GenericTranslator
 
 
+class CannotRemoveElementWithoutRoot(Exception):
+    pass
+
+
+class CannotRemoveElementWithoutParent(Exception):
+    pass
+
+
 class SafeXMLParser(etree.XMLParser):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('resolve_entities', False)
         super(SafeXMLParser, self).__init__(*args, **kwargs)
+
 
 _ctgroup = {
     'html': {'_parser': html.HTMLParser,
@@ -117,8 +127,7 @@ class SelectorList(list):
         """
         for el in iflatten(x.re(regex, replace_entities=replace_entities) for x in self):
             return el
-        else:
-            return default
+        return default
 
     def getall(self):
         """
@@ -135,8 +144,7 @@ class SelectorList(list):
         """
         for x in self:
             return x.get()
-        else:
-            return default
+        return default
     extract_first = get
 
     @property
@@ -146,8 +154,14 @@ class SelectorList(list):
         """
         for x in self:
             return x.attrib
-        else:
-            return {}
+        return {}
+
+    def remove(self):
+        """
+        Remove matched nodes from the parent for each element in this list.
+        """
+        for x in self:
+            x.remove()
 
 
 class Selector(object):
@@ -159,6 +173,9 @@ class Selector(object):
 
     ``type`` defines the selector type, it can be ``"html"``, ``"xml"`` or ``None`` (default).
     If ``type`` is ``None``, the selector defaults to ``"html"``.
+
+    ``base_url`` allows setting a URL for the document. This is needed when looking up external entities with relative paths.
+    See [`lxml` documentation](https://lxml.de/api/index.html) ``lxml.etree.fromstring`` for more information.
     """
 
     __slots__ = ['text', 'namespaces', 'type', '_expr', 'root',
@@ -188,7 +205,9 @@ class Selector(object):
 
         if text is not None:
             if not isinstance(text, six.text_type):
-                raise TypeError("text argument should be of type %s" % (six.text_type))
+                msg = "text argument should be of type %s, got %s" % (
+                    six.text_type, text.__class__)
+                raise TypeError(msg)
             root = self._get_root(text, base_url)
         elif root is None:
             raise ValueError("Selector needs either text or root argument")
@@ -257,7 +276,7 @@ class Selector(object):
 
         In the background, CSS queries are translated into XPath queries using
         `cssselect`_ library and run ``.xpath()`` method.
-        
+
         .. _cssselect: https://pypi.python.org/pypi/cssselect/
         """
         return self.xpath(self._css2xpath(query))
@@ -338,8 +357,32 @@ class Selector(object):
             for an in el.attrib.keys():
                 if an.startswith('{'):
                     el.attrib[an.split('}', 1)[1]] = el.attrib.pop(an)
-            # remove namespace declarations
-            etree.cleanup_namespaces(self.root)
+        # remove namespace declarations
+        etree.cleanup_namespaces(self.root)
+
+    def remove(self):
+        """
+        Remove matched nodes from the parent element.
+        """
+        try:
+            parent = self.root.getparent()
+        except AttributeError:
+            # 'str' object has no attribute 'getparent'
+            raise CannotRemoveElementWithoutRoot(
+                "The node you're trying to remove has no root, "
+                "are you trying to remove a pseudo-element? "
+                "Try to use 'li' as a selector instead of 'li::text' or "
+                "'//li' instead of '//li/text()', for example."
+            )
+
+        try:
+            parent.remove(self.root)
+        except AttributeError:
+            # 'NoneType' object has no attribute 'remove'
+            raise CannotRemoveElementWithoutParent(
+                "The node you're trying to remove has no parent, "
+                "are you trying to remove a root element?"
+            )
 
     @property
     def attrib(self):

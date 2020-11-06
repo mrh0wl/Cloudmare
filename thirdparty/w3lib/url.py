@@ -9,13 +9,13 @@ import re
 import posixpath
 import warnings
 import string
-from collections import namedtuple, OrderedDict
-import six
-from six.moves.urllib.parse import (urljoin, urlsplit, urlunsplit,
+from collections import namedtuple
+import thirdparty.six as six
+from thirdparty.six.moves.urllib.parse import (urljoin, urlsplit, urlunsplit,
                                     urldefrag, urlencode, urlparse,
                                     quote, parse_qs, parse_qsl,
                                     ParseResult, unquote, urlunparse)
-from six.moves.urllib.request import pathname2url, url2pathname
+from thirdparty.six.moves.urllib.request import pathname2url, url2pathname
 from thirdparty.w3lib.util import to_bytes, to_native_str, to_unicode
 
 
@@ -34,14 +34,20 @@ EXTRA_SAFE_CHARS = b'|'  # see https://github.com/scrapy/w3lib/pull/25
 
 _safe_chars = RFC3986_RESERVED + RFC3986_UNRESERVED + EXTRA_SAFE_CHARS + b'%'
 
-def safe_url_string(url, encoding='utf8', path_encoding='utf8'):
+_ascii_tab_newline_re = re.compile(r'[\t\n\r]')  # see https://infra.spec.whatwg.org/#ascii-tab-or-newline
+
+def safe_url_string(url, encoding='utf8', path_encoding='utf8', quote_path=True):
     """Convert the given URL into a legal URL by escaping unsafe characters
-    according to RFC-3986.
+    according to RFC-3986. Also, ASCII tabs and newlines are removed
+    as per https://url.spec.whatwg.org/#url-parsing.
 
     If a bytes URL is given, it is first converted to `str` using the given
-    encoding (which defaults to 'utf-8'). 'utf-8' encoding is used for
-    URL path component (unless overriden by path_encoding), and given
-    encoding is used for query string or form data.
+    encoding (which defaults to 'utf-8'). If quote_path is True (default), 
+    path_encoding ('utf-8' by default) is used to encode URL path component
+    which is then quoted. Otherwise, if quote_path is False, path component
+    is not encoded or quoted. Given encoding is used for query string 
+    or form data.
+
     When passing an encoding, you should use the encoding of the
     original page (the page from which the URL was extracted from).
 
@@ -56,8 +62,8 @@ def safe_url_string(url, encoding='utf8', path_encoding='utf8'):
     #     encoded with the supplied encoding (or UTF8 by default)
     #   - if the supplied (or default) encoding chokes,
     #     percent-encode offending bytes
-    parts = urlsplit(to_unicode(url, encoding=encoding,
-                                errors='percentencode'))
+    decoded = to_unicode(url, encoding=encoding, errors='percentencode')
+    parts = urlsplit(_ascii_tab_newline_re.sub('', decoded))
 
     # IDNA encoding can fail for too long labels (>63 characters)
     # or missing labels (e.g. http://.example.com)
@@ -66,15 +72,18 @@ def safe_url_string(url, encoding='utf8', path_encoding='utf8'):
     except UnicodeError:
         netloc = parts.netloc
 
+    # default encoding for path component SHOULD be UTF-8
+    if quote_path:
+        path = quote(to_bytes(parts.path, path_encoding), _safe_chars)
+    else:
+        path = to_native_str(parts.path)
+    
     # quote() in Python2 return type follows input type;
     # quote() in Python3 always returns Unicode (native str)
     return urlunsplit((
         to_native_str(parts.scheme),
         to_native_str(netloc).rstrip(':'),
-
-        # default encoding for path component SHOULD be UTF-8
-        quote(to_bytes(parts.path, path_encoding), _safe_chars),
-
+        path,
         # encoding of query and fragment follows page encoding
         # or form-charset (if known and passed)
         quote(to_bytes(parts.query, encoding), _safe_chars),
@@ -84,7 +93,7 @@ def safe_url_string(url, encoding='utf8', path_encoding='utf8'):
 
 _parent_dirs = re.compile(r'/?(\.\./)+')
 
-def safe_download_url(url):
+def safe_download_url(url, encoding='utf8', path_encoding='utf8'):
     """ Make a url for download. This will call safe_url_string
     and then strip the fragment, if one exists. The path will
     be normalised.
@@ -92,11 +101,11 @@ def safe_download_url(url):
     If the path is outside the document root, it will be changed
     to be within the document root.
     """
-    safe_url = safe_url_string(url)
+    safe_url = safe_url_string(url, encoding, path_encoding)
     scheme, netloc, path, query, _ = urlsplit(safe_url)
     if path:
         path = _parent_dirs.sub('', posixpath.normpath(path))
-        if url.endswith('/') and not path.endswith('/'):
+        if safe_url.endswith('/') and not path.endswith('/'):
             path += '/'
     else:
         path = '/'
@@ -199,13 +208,21 @@ def url_query_cleaner(url, parameterlist=(), sep='&', kvsep='=', remove=False, u
         url += '#' + fragment
     return url
 
-
 def _add_or_replace_parameters(url, params):
     parsed = urlsplit(url)
-    args = parse_qsl(parsed.query, keep_blank_values=True)
+    current_args = parse_qsl(parsed.query, keep_blank_values=True)
 
-    new_args = OrderedDict(args)
-    new_args.update(params)
+    new_args = []
+    seen_params = set()
+    for name, value in current_args:
+        if name not in params:
+            new_args.append((name, value))
+        elif name not in seen_params:
+            new_args.append((name, params[name]))
+            seen_params.add(name)
+
+    not_modified_args = [(name, value) for name, value in params.items() if name not in seen_params]
+    new_args += not_modified_args
 
     query = urlencode(new_args)
     return urlunsplit(parsed._replace(query=query))

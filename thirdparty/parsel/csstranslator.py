@@ -1,15 +1,13 @@
-import six
-
-if six.PY2:
-    from thirdparty.functools32 import lru_cache
-else:
+try:
     from functools import lru_cache
+except ImportError:
+    from functools32 import lru_cache
 
 from thirdparty.cssselect import GenericTranslator as OriginalGenericTranslator
 from thirdparty.cssselect import HTMLTranslator as OriginalHTMLTranslator
 from thirdparty.cssselect.xpath import XPathExpr as OriginalXPathExpr
 from thirdparty.cssselect.xpath import _unicode_safe_getattr, ExpressionError
-from thirdparty.cssselect.parser import parse, FunctionalPseudoElement
+from thirdparty.cssselect.parser import FunctionalPseudoElement
 
 
 class XPathExpr(OriginalXPathExpr):

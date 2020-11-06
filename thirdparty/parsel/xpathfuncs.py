@@ -1,7 +1,7 @@
 import re
 from lxml import etree
 
-from six import string_types
+from thirdparty.six import string_types
 
 from thirdparty.w3lib.html import HTML5_WHITESPACE
 

@@ -41,7 +41,7 @@ from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError,
 from .auth import _basic_auth_str
 
 try:
-    from urllib3.contrib.socks import SOCKSProxyManager
+    from thirdparty.urllib3.contrib.socks import SOCKSProxyManager
 except ImportError:
     def SOCKSProxyManager(*args, **kwargs):
         raise InvalidSchema("Missing dependencies for SOCKS support.")

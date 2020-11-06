@@ -1,4 +1,4 @@
-import six
+import thirdparty.six as six
 
 def str_to_unicode(text, encoding=None, errors='strict'):
     if encoding is None:

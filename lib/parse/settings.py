@@ -6,14 +6,13 @@ Copyright (c) 2018-2019 cloudmare developer
 
 from __future__ import absolute_import
 
-import codecs
 import os
-import random
-import re
-import string
 import sys
+import subprocess
+from pip._internal import main as pip
+from lib.parse.colors import W, G, R, Y, end, info, tab, good, bad
 
-#enable VT100 emulation for colored text output on windows platforms
+#enable VT100 emulation for coloR text output on windows platforms
 if sys.platform.startswith('win'):
 	import ctypes
 	kernel32 = ctypes.WinDLL('kernel32')
@@ -23,8 +22,6 @@ if sys.platform.startswith('win'):
 	mode.value |= 4
 	kernel32.SetConsoleMode(hStdOut, mode)
 
-from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
-from pip._internal import main as pip
 
 config = {
 	'http_timeout_seconds': 5,
@@ -32,8 +29,8 @@ config = {
 }
 
 # version (<major>.<minor>.<month>.<day>)
-VERSION = "1.8.4.16"
-DESCRIPTION = "Automatic CloudProxy and reverse proxy bypass tool"
+VERSION = "2.0.11.06"
+DESCRIPTION = "Automatic CloudProxy and Reverse Proxy bypass tool"
 ISSUES_PAGE = "https://github.com/MrH0wl/Cloudmare/issues/new"
 GIT_REPOSITORY = "https://github.com/MrH0wl/Cloudmare.git"
 GIT_PAGE = "https://github.com/MrH0wl/Cloudmare"
@@ -41,36 +38,45 @@ ZIPBALL_PAGE = "https://github.com/MrH0wl/Cloudmare/zipball/master"
 YEAR = '2020'
 NAME = 'Cloudmare '
 COPYRIGHT = "Copyright %s - GPL v3.0"%(YEAR)
+PLATFORM = os.name
+PYVERSION = sys.version.split()[0]
+IS_WIN = PLATFORM == "nt"
 
 # colorful banner
 def logotype():
-	print (yellow + '''
+	print (Y + '''
   ____ _                 _ __  __
  / ___| | ___  _   _  __| |  \/  | __ _ _ __ ___
 | |   | |/ _ \| | | |/ _` | |\/| |/ _` | '__/ _ \\
 | |___| | (_) | |_| | (_| | |  | | (_| | | |  __/
- \____|_|\___/ \__,_|\__,_|_|  |_|\__,_|_|  \___| '''+ white + '[' + red + VERSION + white + ']' +'''
-''' + green + DESCRIPTION + green + "\n##################################################"+ white + '\n')
+ \____|_|\___/ \__,_|\__,_|_|  |_|\__,_|_|  \___| '''+ W + '[' + R + VERSION + W + ']' +'''
+''' + G + DESCRIPTION + G + "\n##################################################"+ W + '\n')
+
+BASIC_HELP = (
+    "domain",
+    "bruter",
+    "randomAgent",
+    "host",
+    "outSub",
+)
 
 # osclear shortcut
 def osclear(unknown):
-	isOs = sys.platform.lower()
-	if 'win32' in isOs:
+	if IS_WIN:
 		os.system('cls')
-	elif 'linux' in isOs:
+	elif 'linux' in PLATFORM:
 		os.system('clear')
 	else:
 	  print(unknown)
 	  sys.exit()
 	logotype()
-	print (yellow + "\n~ Thanks for using this script! <3")
+	print (Y + "\n~ Thanks for using this script! <3")
 
 # question shortcut
 def quest(question, doY, doN, exportVar = None):
 	end = ''
 	try:
-		isPy = sys.version_info[0]
-		if isPy == 3:
+		if '3' in PYVERSION:
 			question = input(question)
 		else:
 			question = raw_input(question)
@@ -79,6 +85,8 @@ def quest(question, doY, doN, exportVar = None):
 				exec(doY)
 			except KeyboardInterrupt:
 				sys.exit()
+			except Exception as er:
+				print (tab + bad + 'An unexpected error has ocurred: %s' % (er))
 		elif question == 'no' or question == 'n':
 			exec(doN)
 		else:
@@ -101,5 +109,9 @@ class checkImports:
 		self.errlist.append(self.lib)
 		for i in self.errlist:
 			if i in self.errlist:
-				quest(question=(info + 'WARNING: ' + red + i + end + ' module is required. Do you want to install? y/n: '), exportVar = i, doY = "pip(['install', exportVar, '--no-python-version-warning', '-q', '--disable-pip-version-check', '--no-warn-conflicts', '--no-warn-script-location']) and sys.exit()", doN = "sys.exit()")
-				
+				if PYVERSION.startswith('3'):
+					quest(question=(info + 'WARNING: ' + R + i + end + ' module is required. Do you want to install? y/n: '), exportVar = i, doY = "subprocess.check_call([sys.executable, '-m', 'pip', 'install', exportVar, '--no-python-version-warning', '-q', '--disable-pip-version-check'])", doN = "sys.exit()")
+					print(tab + good + '%s module installed sucessfully' % i)
+				else:
+					quest(question=(info + 'WARNING: ' + R + i + end + ' module is required. Do you want to install? y/n: '), exportVar = i, doY = "pip(['install', exportVar, '--no-python-version-warning', '-q', '--disable-pip-version-check', '--no-warn-conflicts', '--no-warn-script-location']) and sys.exit()", doN = "sys.exit()")
+					print(tab + good + '%s module installed sucessfully' % i)

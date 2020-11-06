@@ -1,20 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
-import sys
-import socket
 import thirdparty.dns
 import thirdparty.dns.resolver
 import thirdparty.dns.exception
 import thirdparty.requests as requests
 
-from lib.core.dnslookup import DNSLookup
-from lib.parse.settings import config, quest
-from thirdparty.dns.resolver import Resolver
-from lib.parse.cmdline import parse_args, parse_error
-from lib.parse.colors import white, green, red, yellow, end, info, que, bad, good, run
+from lib.analyzer.ispcheck import ISPCheck
+from lib.parse.settings import config
+from lib.parse.colors import que, bad, good, tab
 
 def donames_list():
 	donames = []
-	file_ = "/data/domains.txt"
+	file_ = "/data/txt/domains.txt"
 	path = os.getcwd()+file_
 	with open (path,'r') as f:
 		domlist = [line.strip() for line in f]
@@ -46,8 +45,7 @@ def bruter(domain):
 def nameserver(domain):
 	checking = bruter(domain)
 	good_dns = []
-	seen = set()
-	print (que + 'Bruteforcing domain extensions and getting the DNS:')
+	print (que + 'Bruteforcing domain extensions and getting DNS records')
 	for item in checking:
 		try:
 			nameservers = thirdparty.dns.resolver.query(item,'NS')
@@ -56,17 +54,23 @@ def nameserver(domain):
 				data = str(data).rstrip('.')
 				for record in MX:
 					record = str(record).split(' ')[1].rstrip('.')
-					if 'cloudflare' not in data and 'cloudflare' not in record and item not in seen:
-						seen.add(item)
-						good_dns.append(data)
-						good_dns.append(record)
-						print ('   ' + good + 'NS Record: ' + str(data) + ' from: ' + item)
-						print ('   ' + good + 'MX Record: ' + str(record) + ' from: ' + item)
-					elif 'cloudflare' in data and 'cloudflare' in record and seen == None:
-						print('   ' + bad + 'DNS appear to belong Cloudflare')
-						break
+					DataisCloud = ISPCheck(data)
+					RecordisCloud = ISPCheck(record)
+					if DataisCloud == None:
+						if data not in good_dns:
+							good_dns.append(data)
+							print (tab + good + 'NS Record: ' + str(data) + ' from: ' + item)
+					else:
+						print(tab + bad + 'NS Record: ' + str(data) + ' from: ' + item + DataisCloud)
+						
+					if RecordisCloud == None:
+						if record not in good_dns:
+							good_dns.append(record)
+							print (tab + good + 'MX Record: ' + str(record) + ' from: ' + item)
+					else:
+						print(tab + bad + 'MX Record: ' + str(record) + ' from: ' + item + RecordisCloud)
 		except thirdparty.dns.resolver.NXDOMAIN as e:
-			print('   ' + bad + '%s'%e)
+			print(tab + bad + '%s'%e)
 		except thirdparty.dns.resolver.Timeout as e:
 			pass
 		except thirdparty.dns.exception.DNSException as e:

@@ -17,44 +17,34 @@
 
 import base64
 
-import dns.exception
-import dns.rdata
-import dns.tokenizer
+import thirdparty.dns.exception
+import thirdparty.dns.rdata
+import thirdparty.dns.tokenizer
 
-class OPENPGPKEY(dns.rdata.Rdata):
+class OPENPGPKEY(thirdparty.dns.rdata.Rdata):
 
-    """OPENPGPKEY record
+    """OPENPGPKEY record"""
 
-    @ivar key: the key
-    @type key: bytes
-    @see: RFC 7929
-    """
+    # see: RFC 7929
 
     def __init__(self, rdclass, rdtype, key):
-        super(OPENPGPKEY, self).__init__(rdclass, rdtype)
-        self.key = key
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'key', key)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return dns.rdata._base64ify(self.key)
+        return thirdparty.dns.rdata._base64ify(self.key)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value.encode())
-        b64 = b''.join(chunks)
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        b64 = tok.concatenate_remaining_identifiers().encode()
         key = base64.b64decode(b64)
         return cls(rdclass, rdtype, key)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.key)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        key = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        key = parser.get_remaining()
         return cls(rdclass, rdtype, key)

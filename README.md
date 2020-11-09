@@ -6,7 +6,7 @@ For more detail about this common misconfiguration and how Cloudmare works, send
 
 Here's what Cloudmare looks like in action.
 
-![Example usage](https://i.imgur.com/Ne3hfjc.png "Example usage")
+![Example usage](https://i.imgur.com/pSzOXFG.png "Example usage")
 
 (_The IP addresses in this example have been obfuscated and replaced by randomly generated IPs_)
 

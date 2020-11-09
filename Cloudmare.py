@@ -33,9 +33,9 @@ if __name__=="__main__":
 		if args.disableSub == False:
 			args.subbrute = False
 			subdomain = sublist3r.main(args.domain, args.threads, output, ports=None, silent=False, verbose=args.verbose, enable_bruteforce=args.subbrute, engines=None)
-			if len(subdomain) == 0 and not any((args.host, args.brute, args.subbrute, args.searchG, args.searchA, args.searchS, args.censys, args.shodan, args.trails)):
+			if len(subdomain) == 0 and not any((args.host, args.brute, args.subbrute, args.censys, args.shodan)):
 				logotype()
-				parsErr("cannot continue with tasks. Add another argument to task (e.g. \"--host\", \"--bruter\", \"--search-good\", \"--search-scrape\")")
+				parsErr("cannot continue with tasks. Add another argument to task (e.g. \"--host\", \"--bruter\"")
 		else: 
 			subdomain = []
 		if args.headers != None and 'host:' in args.headers:

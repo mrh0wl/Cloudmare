@@ -47,8 +47,9 @@ If you want Cloudmare to be updated more frequently with many more features, you
 
 ```
 >1MegFDHcmc3ivSCsniVcxUc915hUD8S3Go
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/jackablandon)
 ```
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/jackablandon)
+
 ## Contact Info
 ```
 ✉️Email: secmare@protonmail.com

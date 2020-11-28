@@ -22,13 +22,13 @@ $ git clone https://github.com/MrH0wl/Cloudmare.git
 
 ```
 $ cd Cloudmare
-$ python Cloudmare.py -h or python Cloudmare.py -hh
+$ python3 Cloudmare.py -h or python3 Cloudmare.py -hh
 ```
 
 3) Run Cloudmare (see [Usage](#usage) below for more detail)
 
 ```
-$ python Cloudmare.py target.site
+$ python3 Cloudmare.py target.site
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ $ python Cloudmare.py target.site
 
 ## Compatibility
 
-Tested on Python 2.7 and Python=<3.7, working on Linux and Windows. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
+Tested on Python=<3.7, working on Linux and Windows. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
 
 [open an issue]: https://github.com/MrH0wl/Cloudmare/issues/new
 

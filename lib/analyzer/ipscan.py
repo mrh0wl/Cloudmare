@@ -47,7 +47,7 @@ def IPscan(domain, ns, A, userAgent, randomAgent, header, args):
 							print (tab + good + ' HTML content is %d%% structurally similar to: %s' % (round(100 *page_similarity, 2), org_response.url))
 				except Exception:
 					print(tab + bad +"Connection Timeout")
-				netcat(domain, ns, args.ignoreRedirects, args.headers, count=+1)
+				netcat(domain, ns, args.ignoreRedirects,userAgent, randomAgent, args.headers, count=+1)
 				return org_response
 			except requests.exceptions.SSLError:
 				print(tab + bad +'Error handshaking with SSL')

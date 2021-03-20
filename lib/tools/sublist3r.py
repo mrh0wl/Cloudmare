@@ -17,6 +17,12 @@ import socket
 import json
 from collections import Counter
 
+try:
+	from configparser import ConfigParser
+except:
+	from ConfigParser import ConfigParser
+
+
 # external modules
 from .subbrute import subbrute
 import thirdparty.dns.resolver
@@ -655,17 +661,33 @@ class DNSdumpster(enumratorBaseThreaded):
 class Virustotal(enumratorBaseThreaded):
 	def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
 		subdomains = subdomains or []
-		base_url = 'https://www.virustotal.com/ui/domains/{domain}/subdomains'
+		base_url = 'https://www.virustotal.com/api/v3/domains/{domain}/subdomains'
 		self.engine_name = "Virustotal"
 		self.q = q
 		super(Virustotal, self).__init__(base_url, self.engine_name, domain, subdomains, q=q, silent=silent, verbose=verbose)
 		self.url = self.base_url.format(domain=self.domain)
+		
+		try:
+			parser = ConfigParser()
+			parser.read("data/APIs/api.conf")
+			
+			self.apikey = "noapikey"
+			self.apikey = parser.get('VTOTAL', 'api_key')
+			
+		except Exception as e:
+			self.print_(bad + R + "Error: Couldnt Open \"api.conf\" file and read it!" + W)
+			#print(e) - Old Debugging
 		return
 
 	# the main send_req need to be rewritten
 	def send_req(self, url):
 		try:
-			resp = self.session.get(url, headers=self.headers, timeout=self.timeout)
+			if self.apikey == "noapikey":
+				return "{\"error\":\"no api key\"}"
+			apiHeads = {
+				"x-apikey": self.apikey
+			}
+			resp = requests.request(method="GET",url=url, headers=apiHeads, timeout=self.timeout)
 		except Exception as e:
 			self.print_(e)
 			resp = None
@@ -676,9 +698,11 @@ class Virustotal(enumratorBaseThreaded):
 	def enumerate(self):
 		while self.url != '':
 			resp = self.send_req(self.url)
+			#print(resp)
 			resp = json.loads(resp)
+			# - Old debugging
 			if 'error' in resp:
-				self.print_(bad + R + "Error: Virustotal probably now is blocking our requests" + W)
+				self.print_(bad + R + "Error: Virustotal probably now is blocking our requests! Or you have not a valid api key!" + W)
 				break
 			if 'links' in resp and 'next' in resp['links']:
 				self.url = resp['links']['next']

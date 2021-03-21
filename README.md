@@ -53,5 +53,6 @@ If you want Cloudmare to be updated more frequently with many more features, you
 ## Contact Info
 ```
 ✉️Email: secmare@protonmail.com
-🐦Twitter: @SecMare
+🐦Twitter: @mrh0wl
+📷Instagram: @mrh0wl
 ```

@@ -29,13 +29,13 @@ config = {
 }
 
 # version (<major>.<minor>.<month>.<day>)
-VERSION = "2.0.11.06"
+VERSION = "2.1.03.21"
 DESCRIPTION = "Automatic CloudProxy and Reverse Proxy bypass tool"
 ISSUES_PAGE = "https://github.com/MrH0wl/Cloudmare/issues/new"
 GIT_REPOSITORY = "https://github.com/MrH0wl/Cloudmare.git"
 GIT_PAGE = "https://github.com/MrH0wl/Cloudmare"
 ZIPBALL_PAGE = "https://github.com/MrH0wl/Cloudmare/zipball/master"
-YEAR = '2020'
+YEAR = '2021'
 NAME = 'Cloudmare '
 COPYRIGHT = "Copyright %s - GPL v3.0"%(YEAR)
 PLATFORM = os.name

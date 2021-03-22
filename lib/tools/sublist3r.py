@@ -901,7 +901,7 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
 	domain_check = re.compile("^(http|https)?[a-zA-Z0-9]+([\-\.]{1}[a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$")
 	if not domain_check.match(domain):
 		if not silent:
-			print(bad + " Error: Please enter a valid domain" + W)
+			print(bad + "Error: Please enter a valid domain" + W)
 		return []
 
 	if not domain.startswith('http://') or not domain.startswith('https://'):

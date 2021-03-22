@@ -19,6 +19,7 @@ while True:
 		from lib.tools.bruter import nameserver
 		from lib.tools.censys import censys
 		from lib.tools.shodan import shodan
+		from lib.tools.securitytrails import securitytrails
 		break
 	except Exception as e:
 		err = e.name if PYVERSION.startswith('3') else str(e).split('named')[1]
@@ -29,6 +30,11 @@ if __name__=="__main__":
 	try:
 		args, parsErr = parser_cmd()
 		output = "data/output/subdomains-from-" + (args.domain).split('.')[0] + ".txt" if args.outSub == None else False
+
+		http = 'http://' if 'http://' in args.domain else 'https://'
+		args.domain = args.domain.replace(http, '').split('/')[0].split(".", 1)[1]
+		
+
 
 		if args.disableSub == False:
 			args.subbrute = False
@@ -70,6 +76,9 @@ if __name__=="__main__":
 			if args.shodan != None:
 				ShodanIP = shodan(args.domain, args.shodan)
 				subdomain.extend(ShodanIP)
+			if args.securitytrails != None:
+				STIP = securitytrails(args.domain, args.securitytrails)
+				subdomain.extend(STIP)
 			list_length = len(subdomain)
 			for i in range(0, list_length):
 				host = subdomain[i]

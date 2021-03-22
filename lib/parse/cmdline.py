@@ -143,6 +143,9 @@ def parser_cmd(argv=None):
 		search.add_argument("-sSh", "--search-shodan", dest="shodan", nargs="?", const="data/APIs/api.conf", type=str,
 			help="Perform search using Shodan API")
 
+		search.add_argument("-sSt", "--search-st", dest="securitytrails", nargs="?", const="data/APIs/api.conf", type=str,
+			help="Perform search using Securitytrails API")
+
 		# Output options
 		output = parser.add_argument_group("Output", "These options can be used to save the subdomains results")
 

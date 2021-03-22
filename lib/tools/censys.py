@@ -1,7 +1,7 @@
 import thirdparty.censys.ipv4
-from lib.parse.colors import info, que, bad, tab
+from lib.parse.colors import info, que, bad, good, tab
 from lib.parse.settings import PYVERSION
-
+from lib.analyzer.ispcheck import ISPCheck
 try:
 	from configparser import ConfigParser
 except:
@@ -11,6 +11,7 @@ def censys(domain, conf):
 	config = ConfigParser()
 	config.read(conf)
 	censys_ip = []
+
 	print(que + 'Enumerating historical data from: %s using Censys.io' % domain)
 	if PYVERSION.startswith('3'):
 		ID = input(tab + info + 'Please enter your censys ID: ') if config.get('CENSYS', 'API_ID') == '' else config.get('CENSYS', 'API_ID')
@@ -33,9 +34,9 @@ def censys(domain, conf):
 		c = thirdparty.censys.ipv4.CensysIPv4(api_id=ID, api_secret=SECRET)
 		query = list(c.search('{0}'.format((domain)), ip, max_records=10))
 		ip_data = [query[i]['ip'] for i in range(len(query))]
+		print(tab + info + "Total Associated IPs Found:")
 		if ip_data:
-			for ips in ip_data:
-				censys_ip.append(ips)
+			ip = [(print(tab*2 + good + ip), censys_ip.append(ip)) if (ISPCheck(ip) == None) else print(tab *2 + bad + ip + ISPCheck(ip)) for ip in ip_data]
 		return censys_ip
 	except Exception as e:
-		print(bad + "[ERROR]: " + str(e))
+		print(tab*2 + bad + str(e))

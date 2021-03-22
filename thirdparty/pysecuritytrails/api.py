@@ -1,4 +1,4 @@
-import thirdparty.requests as requests
+import thirdparty.requests
 import json
 
 

@@ -967,8 +967,18 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
 
 	subdomains = search_list.union(bruteforce_list)
 
+	#blacklist of domains
+	blacklistedDomainsFile = open("./blacklistdomains", "r")
+	blacklistEntry = blacklistedDomainsFile.readlines()
+	blacklistedDomainsFile.close()
+
 	if subdomains:
 		subdomains = sorted(subdomains, key=subdomain_sorting_key)
+		for bsubdomain in blacklistEntry:
+			for wsubdomain in subdomains:
+				if str(wsubdomain).startswith(str(bsubdomain.replace("\n", ""))):
+					subdomains.remove(wsubdomain)
+					print(tab*2 + info + "Removing "+wsubdomain+" "+f"({R}blacklisted{W})")
 
 		if savefile:
 			write_file(savefile, subdomains)
@@ -986,6 +996,7 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
 		elif not silent:
 			for subdomain in subdomains:
 				try:
+					#print(subdomain)
 					isCloud = ISPCheck(subdomain)
 					ipsub = socket.gethostbyname(str(subdomain))
 					resultPrint = (tab*2 + good + subdomain + f" ({G + ipsub + W})")

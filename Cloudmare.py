@@ -32,7 +32,7 @@ if __name__=="__main__":
 		output = "data/output/subdomains-from-" + (args.domain).split('.')[0] + ".txt" if args.outSub == None else False
 
 		http = 'http://' if 'http://' in args.domain else 'https://'
-		args.domain = args.domain.replace(http, '').split('/')[0].split(".", 1)[1]
+		args.domain = args.domain.replace(http, '').split('/')[0].split(".", 1)[1] if args.domain.count(".") >= 2 else args.domain.replace(http, '').split('/')[0]
 		
 
 

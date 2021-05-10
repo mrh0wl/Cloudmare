@@ -45,10 +45,27 @@ Tested on Python 2.7 and Python=<3.7, working on Linux and Windows. Feel free to
 
 If you want Cloudmare to be updated more frequently with many more features, you can donate to help make this happen.
 
+BTC:
 ```
->1MegFDHcmc3ivSCsniVcxUc915hUD8S3Go
+1MegFDHcmc3ivSCsniVcxUc915hUD8S3Go
+
+or
+
+1NHgyuupGNKumT6XCWmvfxWG6avXh4vaCZ
 ```
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/jackablandon)
+
+ETH:
+```
+0x9665C32ba7dD6e7C8278ff788303B937aA9b2f41
+```
+
+
+Doge:
+```
+DKT6LHHos3Rt6pgiBL4TGBq934tL7SfZEW
+```
+
+[paypal](https://paypal.me/jackablandon)
 
 ## Contact Info
 ```

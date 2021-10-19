@@ -17,3 +17,8 @@
 .us
 .uk
 .co.uk
+.aero
+.mobi
+.int
+.edu
+.coop

@@ -9,7 +9,11 @@ from __future__ import absolute_import
 import os
 import sys
 import subprocess
-from pip._internal import main as pip
+try:
+	from pip._internal import main as pip
+except ImportError:
+    print(bad + "pip module not found...using 'ensurepip' for solve the problem")
+    subprocess.check_call([sys.executable, "-m", "ensurepip"])
 from lib.parse.colors import W, G, R, Y, end, info, tab, good, bad
 
 #enable VT100 emulation for coloR text output on windows platforms

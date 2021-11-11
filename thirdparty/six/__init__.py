@@ -398,7 +398,7 @@ _urllib_request_moved_attributes = [
     MovedAttribute("Request", "urllib2", "urllib.request"),
     MovedAttribute("OpenerDirector", "urllib2", "urllib.request"),
     MovedAttribute("HTTPDefaultErrorHandler", "urllib2", "urllib.request"),
-    MovedAttribute("HTTPRirectHandler", "urllib2", "urllib.request"),
+    MovedAttribute("HTTPRedirectHandler", "urllib2", "urllib.request"),
     MovedAttribute("HTTPCookieProcessor", "urllib2", "urllib.request"),
     MovedAttribute("ProxyHandler", "urllib2", "urllib.request"),
     MovedAttribute("BaseHandler", "urllib2", "urllib.request"),

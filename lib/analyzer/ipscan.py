@@ -35,7 +35,7 @@ def IPscan(domain, ns, A, userAgent, randomAgent, header, args):
 				if org_response.status_code != 200:
 					print (tab + bad + 'Responded with an unexpected HTTP status code')
 				if org_response.url != url:
-					print (tab + good + '%s Rirects to %s' % (url, org_response.url))
+					print (tab + good + '%s Redirects to %s' % (url, org_response.url))
 				try:
 					sec_response = requests.get('http://' + str(A), headers=headers, timeout=config['http_timeout_seconds'])
 					if sec_response.status_code != 200:

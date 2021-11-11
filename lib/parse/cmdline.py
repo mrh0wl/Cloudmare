@@ -129,7 +129,7 @@ def parser_cmd(argv=None):
 			help="Set custom headers (e.g. \"Origin: originwebsite.com, ETag: 123\")")
 
 		request.add_argument("--ignore-redirects", dest="ignoreRedirects", action="store_false",
-			help="Ignore Rirection attempts")
+			help="Ignore Redirection attempts")
 
 		request.add_argument("--threads", dest="threads", nargs="?", const=defaults.threads, type=int,
 			help="Max number of concurrent HTTP(s) requests (default %d)" % defaults.threads)

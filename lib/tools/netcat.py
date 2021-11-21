@@ -21,7 +21,10 @@ def netcat(domain, host, ignoreRedir, userAgent, randomAgent, header, count):
 	headers.update({'User-agent': userAgent}) if userAgent != None else ''
 	schemas = ['http://', 'https://']
 	A = DNSLookup(domain, host)
-	ip = socket.gethostbyname(str(host)) if count == 0 else str(A)
+	try:
+		ip = socket.gethostbyname(str(host)) if count == 0 else str(A)
+	except:
+		print(tab + bad + "Error Resolving host: "+ str(host))
 	if not A:
 		print (que + 'Using DIG to get the real IP')
 		print('   ' + bad + 'IP not found using DNS Lookup')

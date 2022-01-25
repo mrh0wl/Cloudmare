@@ -63,7 +63,6 @@ def netcat(domain, host, ignoreRedir, userAgent, randomAgent, header, count):
 					else:
 						print(tab + bad +'The connect has %d%% similarity to: %s' % (round(100 *sim, 2), domain))
 						print(tab + bad +"%s is not the IP" %ip)
-						print('\n\n'+data.text)
 				else:
 					print(tab + bad + 'Unexpected status code [%s] occurred at: %s' % (data.status_code, schemas[i] + ip))
 	except requests.exceptions.SSLError:
@@ -77,4 +76,4 @@ def netcat(domain, host, ignoreRedir, userAgent, randomAgent, header, count):
 	except requests.exceptions.InvalidHeader as e:
 		print(tab + bad +"Error using header: %s" % str(e))
 	except Exception as e:
-		print(tab + bad +"An unexpected error occurred: %s" % str(e))
+		print(tab + bad +"An unexpected error occurred: %s" % str(e))

@@ -1,4 +1,6 @@
-import thirdparty.censys.ipv4
+import requests
+from bs4 import BeautifulSoup
+from thirdparty.censys.search import CensysHosts
 from lib.parse.colors import info, que, bad, good, tab
 from lib.parse.settings import PYVERSION
 from lib.analyzer.ispcheck import ISPCheck
@@ -13,6 +15,9 @@ def censys(domain, conf):
 	censys_ip = []
 
 	print(que + 'Enumerating historical data from: %s using Censys.io' % domain)
+	req = requests.get('http://' + domain, allow_redirects=True)
+	soup = BeautifulSoup(req.text, 'html.parser')
+	title = soup.title.string if soup.title else None
 	if PYVERSION.startswith('3'):
 		ID = input(tab + info + 'Please enter your censys ID: ') if config.get('CENSYS', 'API_ID') == '' else config.get('CENSYS', 'API_ID')
 		SECRET = input(tab + info + 'Now, please enter your censys SECRET: ') if config.get('CENSYS', 'SECRET') == '' else config.get('CENSYS', 'SECRET')
@@ -31,12 +36,14 @@ def censys(domain, conf):
 			config.write(configfile)
 	try:
 		ip = ['ip']
-		c = thirdparty.censys.ipv4.CensysIPv4(api_id=ID, api_secret=SECRET)
-		query = list(c.search('{0}'.format((domain)), ip, max_records=10))
-		ip_data = [query[i]['ip'] for i in range(len(query))]
-		print(tab + info + "Total Associated IPs Found:")
-		if ip_data:
-			ip = [(print(tab*2 + good + ip), censys_ip.append(ip)) if (ISPCheck(ip) == None) else print(tab *2 + bad + ip + ISPCheck(ip)) for ip in ip_data]
+		c = CensysHosts(ID, SECRET)
+		certificates = c.search("services.tls.certificates.leaf_data.subject.common_name: *.%s" % domain, sort="RELEVANCE")
+		print(tab + info + "Total IPs found using certificates with common names:")
+		ip = [(print(tab*2 + good + ip['ip']), censys_ip.append(ip['ip'])) if (ISPCheck(ip['ip']) == None) else print(tab *2 + bad + ip['ip'] + ISPCheck(ip['ip'])) for ip in certificates()]
+		if title != None:
+			titles = c.search("services.http.response.html_title: '%s'" % title, sort="RELEVANCE")
+			print(tab + info + "Total IPs found using HTML title:")
+			title_ip = [(print(tab*2 + good + ip['ip']), censys_ip.append(ip['ip'])) if (ISPCheck(ip['ip']) == None) else print(tab *2 + bad + ip['ip'] + ISPCheck(ip['ip'])) for ip in titles()]
 		return censys_ip
 	except Exception as e:
 		print(tab*2 + bad + str(e))

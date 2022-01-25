@@ -1,29 +1,29 @@
-"""
-Interact with the Censys Search Certificate API.
-"""
-
+"""Interact with the Censys Search Certificate API."""
 from typing import List
 
-from thirdparty.censys.base import CensysIndex
+from .api import CensysSearchAPIv1
 
 
-class CensysCertificates(CensysIndex):
+class CensysCertificates(CensysSearchAPIv1):
+    """Interacts with the Certificates index.
+
+    See CensysSearchAPIv1 for additional arguments.
+
+    Args:
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
     """
-    Interacts with the Certificates index.
-    """
 
+    DEFAULT_URL: str = "https://search.censys.io/api/v1"
+    """Default Search API base URL."""
     INDEX_NAME = "certificates"
     """Name of Censys Index."""
     MAX_PER_BULK_REQUEST = 50
-    """Max number of bulk thirdparty.requests."""
-
-    def __init__(self, *args, **kwargs):
-        CensysIndex.__init__(self, *args, **kwargs)
-        self.bulk_path = f"/bulk/{self.INDEX_NAME}"
+    """Max number of bulk requests."""
+    bulk_path = f"/bulk/{INDEX_NAME}"
 
     def bulk(self, fingerprints: List[str]) -> dict:
-        """
-        thirdparty.requests data in bulk.
+        """Requests bulk certificates.
 
         Args:
             fingerprints (List[str]): List of certificate SHA256 fingerprints.
@@ -31,8 +31,7 @@ class CensysCertificates(CensysIndex):
         Returns:
             dict: Search results from an API query.
         """
-
-        result = dict()
+        result = {}
         start = 0
         end = self.MAX_PER_BULK_REQUEST
         while start < len(fingerprints):

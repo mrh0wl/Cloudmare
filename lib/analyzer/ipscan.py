@@ -1,25 +1,17 @@
-from __future__ import print_function
-from __future__ import absolute_import
-
 from lib.parse.settings import config, checkImports, PYVERSION
 from lib.parse.colors import W, G, R, Y, end, info, que, bad, good, run, tab
 from lib.parse.cmdline import parser_cmd
 import random
 
-while True:
-	try:
-		import thirdparty.requests as requests
-		from lib.tools.netcat import netcat
-		from lib.tools.bruter import nameserver
-		from lib.tools.censys import censys
-		from thirdparty.html_similarity import similarity
-		from lib.analyzer.dnslookup import scan, DNSLookup
-		from thirdparty.dns.resolver import Resolver
-		from lib.tools import sublist3r
-		break
-	except Exception as e:
-		err = e.name if PYVERSION.startswith('3') else str(e).split('named')[1]
-		checkImports(err).downloadLib()
+
+import thirdparty.requests as requests
+from lib.tools.netcat import netcat
+from lib.tools.bruter import nameserver
+from lib.tools.censys import censys
+from thirdparty.html_similarity import similarity
+from lib.analyzer.dnslookup import scan, DNSLookup
+from thirdparty.dns.resolver import Resolver
+from lib.tools import sublist3r
 
 def IPscan(domain, ns, A, userAgent, randomAgent, header, args):
 		url = 'http://' + domain

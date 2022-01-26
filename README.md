@@ -28,7 +28,7 @@ $ python Cloudmare.py -h or python Cloudmare.py -hh
 3) Run Cloudmare (see [Usage](#usage) below for more detail)
 
 ```
-$ python Cloudmare.py target.site
+$ python Cloudmare.py -u target.site --bruter -sC -sSh -sSh --host verified.site
 ```
 
 ## Usage

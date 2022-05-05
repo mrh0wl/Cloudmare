@@ -47,22 +47,12 @@ If you want Cloudmare to be updated more frequently with many more features, you
 
 BTC:
 ```
-1MegFDHcmc3ivSCsniVcxUc915hUD8S3Go
-
-or
-
-1NHgyuupGNKumT6XCWmvfxWG6avXh4vaCZ
+15y7CTsrJeLmJuKzWXT8BVRoxEPXbK4Zp5
 ```
 
 ETH:
 ```
 0x9665C32ba7dD6e7C8278ff788303B937aA9b2f41
-```
-
-
-Doge:
-```
-DKT6LHHos3Rt6pgiBL4TGBq934tL7SfZEW
 ```
 
 [paypal](https://paypal.me/jackablandon)

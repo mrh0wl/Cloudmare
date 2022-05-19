@@ -36,7 +36,7 @@ python Cloudmare.py -u target.site --bruter -sC -sSh -sSt --host verified.site
 ## Termux users
 
 1) pkg upgrade && pkg update
-2) pkg install git python libxml2 libxslt
+2) pkg install git python libxml2 libxslt dnsutils
 3) git clone <https://github.com/MrH0wl/Cloudmare.git>
 4) cd Cloudmare
 5) python Cloudmare.py -h or python Cloudmare.py -hh

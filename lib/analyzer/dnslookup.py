@@ -1,4 +1,5 @@
 import random
+import subprocess
 import thirdparty.requests as requests
 from lib.parse.colors import Y, W, B, R, que, bad, good, tab
 from lib.parse.settings import config
@@ -24,7 +25,8 @@ def scan(domain, host, userAgent, randomAgent, header):
 
 
 def DNSLookup(domain, host):
-	sys_r = Resolver()
+	isAndroid = subprocess.check_output(['uname', '-o']).strip() == b'Android'
+	sys_r = Resolver(filename='/data/data/com.termux/files/usr/etc/resolv.conf') if isAndroid else Resolver()
 	dns = [host]
 	try:
 		dream_dns = [item.address for server in dns for item in sys_r.query(server)]

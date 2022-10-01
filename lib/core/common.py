@@ -4,7 +4,8 @@ import logging
 import warnings
 
 from thirdparty.odict.odict import OrderedDict
-from lib.parse.colors import W, B, Y, R, good, bad, run, tab, info, que
+from lib.utils.colors import info, bad
+
 
 def checkFile(filename, raiseOnError=True):
     valid = True
@@ -15,20 +16,21 @@ def checkFile(filename, raiseOnError=True):
         try:
             if filename is None or not os.path.isfile(filename):
                 valid = False
-        except:
+        except Exception:
             valid = False
 
         if valid:
             try:
                 with open(filename, "rb"):
                     pass
-            except:
+            except Exception:
                 valid = False
 
     if not valid and raiseOnError:
         raise warnings("unable to read file '%s'" % filename)
 
     return valid
+
 
 def getFile(filename, commentPrefix='#', lowercase=False, unique=False):
 
@@ -41,10 +43,10 @@ def getFile(filename, commentPrefix='#', lowercase=False, unique=False):
 
     try:
         with open(filename, 'r') as f:
-            for l in f:
+            for line in f:
                 if commentPrefix:
-                    if l.find(commentPrefix) != -1:
-                        l = l[:l.find(commentPrefix)]
+                    if line.find(commentPrefix) != -1:
+                        line = line[:line.find(commentPrefix)]
 
                 line = line.strip()
 
@@ -66,6 +68,7 @@ def getFile(filename, commentPrefix='#', lowercase=False, unique=False):
 
     return retVal if not unique else list(retVal.keys())
 
+
 def setRandomAgent():
     userAgents = open('data/txt/random_agents.txt', 'r')
     if not userAgents:
@@ -76,7 +79,7 @@ def setRandomAgent():
         try:
             userAgents = getFile('data/txt/random_agents.txt')
         except IOError:
-            errMsg = "unable to read HTTP User-Agent file "
+            errMsg = bad + "unable to read HTTP User-Agent file "
             errMsg += "file 'data/txt/random_agents.txt'"
             raise warnings(errMsg)
 

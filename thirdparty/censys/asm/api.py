@@ -3,7 +3,7 @@ import os
 from math import inf
 from typing import Iterator, Optional, Type
 
-from requests.models import Response
+from thirdparty.requests.models import Response
 
 from censys.common.base import CensysAPIBase
 from censys.common.config import DEFAULT, get_config

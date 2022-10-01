@@ -98,6 +98,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.vscode
 env/
 venv/
 ENV/
@@ -158,3 +159,8 @@ cython_debug/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode
 data/APIs/api.conf
+.flake8
+.gitignore
+requirements.txt
+data/APIs/api.conf
+test.py

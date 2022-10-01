@@ -34,7 +34,6 @@ import pkg_resources
 import thirdparty.shodan as shodan
 import thirdparty.shodan.helpers as helpers
 import threading
-import thirdparty.requests as requests
 import time
 
 # The file converters that are used to go from .json.gz to various other formats

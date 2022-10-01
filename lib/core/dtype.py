@@ -3,7 +3,8 @@
 import copy
 import types
 
-#taken from: 'https://github.com/sqlmapproject/sqlmap'
+# taken from: 'https://github.com/sqlmapproject/sqlmap'
+
 
 class AttribDict(dict):
     def __init__(self, _dict=None, attrib=None):

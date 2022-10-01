@@ -6,8 +6,8 @@ from functools import wraps
 from typing import Any, Callable, Optional, Type
 
 import backoff
-import requests
-from requests.models import Response
+import thirdparty.requests as requests
+from thirdparty.requests.models import Response
 
 from .exceptions import (
     CensysAPIException,

@@ -3,7 +3,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Type
 
-from requests.models import Response
+from thirdparty.requests.models import Response
 
 from ...common.base import CensysAPIBase
 from ...common.config import DEFAULT, get_config

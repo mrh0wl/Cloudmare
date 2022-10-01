@@ -4,7 +4,7 @@ import sys
 import webbrowser
 from typing import Any, List, Optional, Tuple
 
-import requests
+import thirdparty.requests as requests
 from rich import box
 from rich.table import Table
 

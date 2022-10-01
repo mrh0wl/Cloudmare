@@ -2,7 +2,7 @@
 import os
 from typing import Iterator, List, Optional, Type
 
-from requests.models import Response
+from thirdparty.requests.models import Response
 
 from ...common.base import CensysAPIBase
 from ...common.config import DEFAULT, get_config

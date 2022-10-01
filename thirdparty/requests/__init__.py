@@ -42,7 +42,6 @@ is at <https://requests.readthedocs.io>.
 
 from thirdparty import chardet
 import thirdparty.urllib3 as urllib3
-import thirdparty.chardet as chardet
 import warnings
 from .exceptions import RequestsDependencyWarning
 

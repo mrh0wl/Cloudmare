@@ -40,7 +40,7 @@ if __name__ == "__main__":
     args, parsErr = parser_cmd()
     output = "data/output/subdomains-from-" + (args.domain).split('.')[0] + ".txt" if args.outSub is None else False
 
-    urlReg = re.compile(r'^(?:https?://)?(?:www(?:.*?)+\.|m(?:\d?)+\.)?((?:[.\w\d-]+))')
+    urlReg = re.compile(r'^(?:https?://)?(?:(?:w{2,3}\d{1})+|mobile\.|m(?:\d?)+\.)?((?:[.\w\d-]+))')
     args.domain = urlReg.search(args.domain).group(1)
     subdomain = sublist3r.main(args.domain, args.threads, output, ports=None,
                                silent=False, verbose=args.verbose,

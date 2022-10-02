@@ -996,11 +996,10 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
 
     if enable_bruteforce:
         if not silent:
-            print(tab + warn + "Starting bruteforce module now using subbrute.." + W)
+            print(tab + warn + "Starting bruteforce module now using subbrute" + W)
         record_type = False
-        path_to_file = os.path.dirname(os.path.realpath(__file__))
-        subs = os.path.join(path_to_file, 'subbrute', 'names.txt')
-        resolvers = os.path.join(path_to_file, 'subbrute', 'resolvers.txt')
+        subs = 'data/txt/names.txt'
+        resolvers = 'data/txt/resolvers.txt'
         process_count = threads
         output = False
         json_output = False

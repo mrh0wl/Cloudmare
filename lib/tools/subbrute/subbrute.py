@@ -19,6 +19,7 @@ import uuid
 import thirdparty.dns.rdatatype
 import thirdparty.dns.resolver
 
+from lib.utils.colors import tab, warn
 # Python 2.x and 3.x compatiablity
 # We need the Queue library for exception handling
 try:
@@ -422,7 +423,7 @@ def print_target(target,
                  found_subdomains=[],
                  verbose=False):
     subdomains_list = []
-    run(target, record_type, subdomains, resolve_list, process_count)
+    # run(target, record_type, subdomains, resolve_list, process_count)
     for result in run(target, record_type, subdomains, resolve_list, process_count):
         (hostname, record_type, response) = result
         if not record_type:
@@ -437,12 +438,16 @@ def print_target(target,
     return set(subdomains_list)
 
 
-def run(target, record_type=None, subdomains="names.txt", resolve_list="resolvers.txt", process_count=16):
+def run(target,
+        record_type=None,
+        subdomains="data/txt/names.txt",
+        resolve_list="data/txt/resolvers.txt",
+        process_count=16):
     subdomains = check_open(subdomains)
     resolve_list = check_open(resolve_list)
     if (len(resolve_list) / 16) < process_count:
         sys.stderr.write(
-            'Warning: Fewer than 16 resovlers per thread, consider adding more nameservers to resolvers.txt.\n')
+            f'{tab*2}{warn}Fewer than 16 resovlers per thread, consider adding more nameservers to resolvers.txt.\n')
     if os.name == 'nt':
         wildcards = {}
         spider_blacklist = {}

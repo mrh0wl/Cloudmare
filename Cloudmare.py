@@ -4,39 +4,30 @@
 
 # default imports
 import re
-import sys
 import signal
 
-from lib import parser_cmd, logotype, quest
-from lib import nameserver, scan, netcat, DNSLookup, IPscan
-from lib import censys, shodan, securitytrails
-from lib import sublist3r
-
+from lib import (DNSLookup, IPscan, censys, logotype, nameserver, netcat,
+                 parser_cmd, quest, scan, securitytrails, shodan, sublist3r)
 from lib.tools import ISPCheck
-from lib.utils.colors import bad, warn, run
-
+from lib.utils.colors import bad, warn
 from thirdparty import urllib3
 
 urllib3.disable_warnings()
 verify = False
 
 
-def exit_gracefully(signum, frame):
+def keyboard_exit(signum, frame):
     signal.signal(signal.SIGINT, original_sigint)
 
-    try:
-        quest(f"{warn}Do you want to clear the screen?", doY='osclear()', defaultAnswerFor='no')
-    except KeyboardInterrupt:
-        print(f"{run}Ok ok, quitting")
-        sys.exit(1)
+    quest(f"{warn}Do you want to clear the screen?", doY='osclear()', defaultAnswerFor='no')
 
     # restore the exit gracefully handler here
-    signal.signal(signal.SIGINT, exit_gracefully)
+    signal.signal(signal.SIGINT, keyboard_exit)
 
 
 if __name__ == "__main__":
     original_sigint = signal.getsignal(signal.SIGINT)
-    signal.signal(signal.SIGINT, exit_gracefully)
+    signal.signal(signal.SIGINT, keyboard_exit)
     args, parsErr = parser_cmd()
     output = "data/output/subdomains-from-" + (args.domain).split('.')[0] + ".txt" if args.outSub is None else False
 
@@ -53,8 +44,8 @@ if __name__ == "__main__":
             args.censys,
             args.shodan,
             args.securitytrails
-            )
-         ):
+    )
+    ):
         logotype()
         parsErr("cannot continue with tasks. Add another argument to task (e.g. \"--host\", \"--bruter\")")
     if args.headers is not None and 'host:' in args.headers:

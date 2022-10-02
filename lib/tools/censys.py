@@ -1,7 +1,8 @@
 import thirdparty.requests as requests
 from thirdparty.bs4 import BeautifulSoup
 from thirdparty.censys.search import CensysHosts
-from ..utils.colors import warn, info, bad, good, tab
+
+from ..utils.colors import bad, good, info, tab, warn
 from .ispcheck import ISPCheck
 
 try:

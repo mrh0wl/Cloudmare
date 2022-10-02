@@ -3,15 +3,13 @@
 
 from __future__ import absolute_import
 
-import sys
 import logging
+import sys
 
-from ..utils.settings import CheckImports
 from ..core.defaults import defaults
-from ..utils.settings import BASIC_HELP
-from ..utils.settings import logotype, COPYRIGHT, VERSION, NAME
 from ..utils.colors import W, Y, bad, warn
-
+from ..utils.settings import (BASIC_HELP, COPYRIGHT, NAME, VERSION,
+                              CheckImports, logotype)
 
 try:
     from configparser import ConfigParser
@@ -22,9 +20,7 @@ config = ConfigParser()
 
 try:
     import argparse
-    from argparse import ArgumentError
-    from argparse import ArgumentParser
-    from argparse import SUPPRESS
+    from argparse import SUPPRESS, ArgumentError, ArgumentParser
 
 except ImportError as im:
     err = im.name
@@ -145,20 +141,20 @@ def parser_cmd(argv=None):
         search.add_argument("-sSh", "--search-shodan", dest="shodan", nargs="?", const="data/APIs/api.conf", type=str,
                             help="Perform search using Shodan API")
 
-        search.add_argument("-sSt", "--search-st", dest="securitytrails", nargs="?", const="data/APIs/api.conf", type=str,
-                            help="Perform search using Securitytrails API")
+        search.add_argument("-sSt", "--search-st", dest="securitytrails", nargs="?", const="data/APIs/api.conf",
+                            type=str, help="Perform search using Securitytrails API")
 
         # Output options
         output = parser.add_argument_group("Output", "These options can be used to save the subdomains results")
 
         output.add_argument("-o", "--output", dest="outSub", action="store_true",
-                            help="Save the subdomains into: \"data/output/subdomains-from-[domain].txt\"")
+                            help="Save the subdomains into: \"data/output/subdomains-[domain].txt\"")
 
         output.add_argument("--oG", "--output-good", dest="outSubG", action="store_true",
-                            help="Save [good response] subdomains into: \"data/output/good-subdomains-from-[domain].txt\"")
+                            help="Save [good response] subdomains into: \"data/output/good-subdomains-[domain].txt\"")
 
         output.add_argument("--oI", "--output-ip", dest="outSubIP", action="store_true",
-                            help="Save subdomains IP into: \"data/output/good-subdomains-from-[domain].txt\"")
+                            help="Save subdomains IP into: \"data/output/good-subdomains-[domain].txt\"")
 
         advancedHelp = True
         argv = sys.argv[1:]

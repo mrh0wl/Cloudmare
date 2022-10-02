@@ -1,3 +1,4 @@
-from .settings import (CheckImports, osclear, BASIC_HELP, VERSION, DESCRIPTION, quest)
-from .cmdline import (parser_cmd, logotype)
-from .colors import W, G, R, Y, B, end, warn, info, bad, good, run, tab
+from .cmdline import logotype, parser_cmd
+from .colors import B, G, R, W, Y, bad, end, good, info, run, tab, warn
+from .settings import (BASIC_HELP, DESCRIPTION, VERSION, CheckImports, osclear,
+                       quest)

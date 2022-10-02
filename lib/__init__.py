@@ -15,13 +15,6 @@ libList = [
 
 CheckImports(libList)
 
-from .tools import IPscan
-from .tools import scan, DNSLookup
-from .tools import sublist3r
-from .tools import netcat
-from .tools import nameserver
-from .tools import censys
-from .tools import shodan
-from .tools import securitytrails
-from .utils import parser_cmd, quest
-from .utils import logotype, osclear
+from .tools import (DNSLookup, IPscan, censys, nameserver, netcat, scan,
+                    securitytrails, shodan, sublist3r)
+from .utils import logotype, osclear, parser_cmd, quest

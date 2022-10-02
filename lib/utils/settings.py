@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''
 Copyright (c) 2018-2019 cloudmare developer
@@ -8,7 +8,9 @@ from __future__ import absolute_import
 
 import os
 import sys
-from .colors import W, G, R, Y, tab, good, bad, warn, end
+
+from .colors import G, R, W, Y, bad, end, good, tab, warn
+
 ''' try:
     from pip._internal import main as pip
 except ImportError:

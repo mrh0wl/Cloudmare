@@ -6,9 +6,10 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser
 
-from ..utils.colors import bad, info, warn, tab, good, Y, W
-from .ispcheck import ISPCheck
 from thirdparty.pysecuritytrails import SecurityTrails, SecurityTrailsError
+
+from ..utils.colors import W, Y, bad, good, info, tab, warn
+from .ispcheck import ISPCheck
 
 
 def securitytrails(domain, conf):

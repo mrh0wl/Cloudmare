@@ -9,10 +9,12 @@ except ImportError:
     from ConfigParser import ConfigParser
 
 import sys
+
 import thirdparty.shodan.exception as ShodanException
-from .ispcheck import ISPCheck
 from thirdparty.shodan import Shodan
-from ..utils.colors import bad, warn, info, tab, good, run
+
+from ..utils.colors import bad, good, info, run, tab, warn
+from .ispcheck import ISPCheck
 
 
 def shodan(domain, conf):

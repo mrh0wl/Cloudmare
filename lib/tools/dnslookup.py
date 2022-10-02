@@ -1,10 +1,12 @@
 import random
 from os import environ
+
 import thirdparty.requests as requests
-from ..utils.colors import Y, info, bad, good, tab
-from ..utils.settings import config
-from thirdparty.html_similarity import similarity
 from thirdparty.dns.resolver import Resolver
+from thirdparty.html_similarity import similarity
+
+from ..utils.colors import Y, bad, good, info, tab
+from ..utils.settings import config
 
 
 def scan(domain, host, userAgent, randomAgent, header):

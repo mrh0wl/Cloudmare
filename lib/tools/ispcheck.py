@@ -1,9 +1,9 @@
 import re
 import socket
 
+from lib.utils.colors import R, W, Y, tab, warn
 from thirdparty import requests
 from thirdparty.bs4 import BeautifulSoup
-from lib.utils.colors import Y, W, R, tab, warn
 
 cloudlist = ['sucuri',
              'cloudflare',

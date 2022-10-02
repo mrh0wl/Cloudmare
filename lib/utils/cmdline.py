@@ -129,19 +129,19 @@ def parser_cmd(argv=None):
         request.add_argument("--ignore-redirects", dest="ignoreRedirects", action="store_false",
                              help="Ignore Redirection attempts")
 
-        request.add_argument("--threads", dest="threads", nargs="?", const=defaults.threads, type=int,
+        request.add_argument("--threads", dest="threads", nargs="*", default=defaults.threads, type=int,
                              help="Max number of concurrent HTTP(s) requests (default %d)" % defaults.threads)
 
         # Search options
         search = parser.add_argument_group("Search", "These options can be used to perform advanced searches")
 
-        search.add_argument("-sC", "--search-censys", dest="censys", nargs="?", const="data/APIs/api.conf", type=str,
+        search.add_argument("-sC", "--search-censys", dest="censys", nargs="?", default="data/APIs/api.conf", type=str,
                             help="Perform search using Censys API")
 
-        search.add_argument("-sSh", "--search-shodan", dest="shodan", nargs="?", const="data/APIs/api.conf", type=str,
+        search.add_argument("-sSh", "--search-shodan", dest="shodan", nargs="?", default="data/APIs/api.conf", type=str,
                             help="Perform search using Shodan API")
 
-        search.add_argument("-sSt", "--search-st", dest="securitytrails", nargs="?", const="data/APIs/api.conf",
+        search.add_argument("-sSt", "--search-st", dest="securitytrails", nargs="?", default="data/APIs/api.conf",
                             type=str, help="Perform search using Securitytrails API")
 
         # Output options

@@ -1,6 +1,6 @@
 # Cloudmare
 
-Cloudmare is a simple tool to find the origin servers of websites protected by Cloudflare, Sucuri or Incapsula with a misconfiguration DNS.
+Cloudmare is a simple tool to find the origin servers of websites protected by Cloudflare, Sucuri, or Incapsula with a misconfiguration DNS.
 
 For more detail about this common misconfiguration and how Cloudmare works, send me a private message.
 
@@ -8,7 +8,7 @@ Here's what Cloudmare looks like in action.
 
 ![Example usage](https://i.imgur.com/pSzOXFG.png "Example usage")
 
-(_The IP addresses in this example have been obfuscated and replaced by randomly generated IPs_)
+(_The websites and the IP addresses in this example have been obfuscated_)
 
 ## Setup
 
@@ -37,7 +37,7 @@ python Cloudmare.py -u target.site --bruter -sC -sSh -sSt --host verified.site
 
 1) pkg upgrade && pkg update
 2) pkg install git python libxml2 libxslt dnsutils
-3) git clone <https://github.com/MrH0wl/Cloudmare.git>
+3) git clone [https://github.com/MrH0wl/Cloudmare.git](https://github.com/MrH0wl/Cloudmare.git)
 4) cd Cloudmare
 5) python Cloudmare.py -h or python Cloudmare.py -hh
 
@@ -52,8 +52,6 @@ Note: Be patient if the script requires to install modules.
 ## Compatibility
 
 Tested on Python=<3.7 (don't use Python 2 more), working on Linux and Windows. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
-
-[open an issue]: https://github.com/MrH0wl/Cloudmare/issues/new
 
 ## Donate BTC
 
@@ -71,12 +69,19 @@ ETH:
 0x9665C32ba7dD6e7C8278ff788303B937aA9b2f41
 ```
 
-[![](https://raw.githubusercontent.com/aha999/DonateButtons/master/Paypal.png)](https://paypal.me/mrh0wl)
+<a href="https://paypal.me/mrh0wl">
+<img src="https://i.imgur.com/BtQVHbH.png" alt="Donate with PayPal" width="250"/>
+</a>
+<a href="https://buymeacoffee.com/mrh0wl">
+<img src="https://miro.medium.com/max/720/1*VJdus0nKuy1uNoByh5BN3w.png" alt="Buy me a coffee" width="260"/>
+</a>
 
 ## Contact Info
 
 ```
 ✉️Email: secmare@protonmail.com
 🐦Twitter: @mrh0wl
-📷Instagram: @mrh0wl_
+📷Instagram: @mrh0wl
 ```
+
+[open an issue]: https://github.com/MrH0wl/Cloudmare/issues/new

@@ -87,6 +87,8 @@ def osclear():
 
 def executer(command, **kwargs):
     try:
+        if 'return' in kwargs.keys() and kwargs['return'] is True:
+            return eval(command)
         exec(command)
     except Exception as e:
         if 'printError' in kwargs.keys():
@@ -106,10 +108,12 @@ def quest(question, doY='sys.exit(0)', doN='sys.exit(1)', defaultAnswerFor='yes'
         answers['negative'].append('')
 
     if question in answers['affirmative']:
-        executer(doY, **kwargs)
+        exe = executer(doY, **kwargs)
 
     elif question in answers['negative']:
-        executer(doN, **kwargs)
+        exe = executer(doN, **kwargs)
+
+    return exe
 
 
 # Import Checker and downloader

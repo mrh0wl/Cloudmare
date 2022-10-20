@@ -135,13 +135,13 @@ def parser_cmd(argv=None):
         # Search options
         search = parser.add_argument_group("Search", "These options can be used to perform advanced searches")
 
-        search.add_argument("-sC", "--search-censys", dest="censys", default="data/APIs/api.conf", type=str,
+        search.add_argument("-sC", "--search-censys", dest="censys", nargs="?", const="data/APIs/api.conf", type=str,
                             help="Perform search using Censys API")
 
-        search.add_argument("-sSh", "--search-shodan", dest="shodan", default="data/APIs/api.conf", type=str,
+        search.add_argument("-sSh", "--search-shodan", dest="shodan", nargs="?", const="data/APIs/api.conf", type=str,
                             help="Perform search using Shodan API")
 
-        search.add_argument("-sSt", "--search-st", dest="securitytrails", default="data/APIs/api.conf",
+        search.add_argument("-sSt", "--search-st", dest="securitytrails", nargs="?", const="data/APIs/api.conf",
                             type=str, help="Perform search using Securitytrails API")
 
         # Output options

@@ -51,7 +51,7 @@ def nameserver(domain):
     checking = bruter(domain)
     good_dns = []
     print(info + 'Bruteforcing domain extensions and getting DNS records')
-    print(tab + warn + f'Total domain extesion used: {Y}{len(checking)}{W}')
+    print(tab + warn + f'Total domain extension used: {Y}{len(checking)}{W}')
     for item in checking:
         try:
             for rdtype in rdtypes:

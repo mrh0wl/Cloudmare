@@ -53,21 +53,9 @@ Note: Be patient if the script requires to install modules.
 
 Tested on Python=<3.7 (don't use Python 2 more), working on Linux and Windows. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
 
-## Donate BTC
+## Donate
 
 If you want Cloudmare to be updated more frequently with many more features, you can donate to help make this happen.
-
-BTC:
-
-```
-15y7CTsrJeLmJuKzWXT8BVRoxEPXbK4Zp5
-```
-
-ETH:
-
-```
-0x9665C32ba7dD6e7C8278ff788303B937aA9b2f41
-```
 
 <a href="https://paypal.me/mrh0wl">
 <img src="https://i.imgur.com/BtQVHbH.png" alt="Donate with PayPal" width="250"/>

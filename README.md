@@ -1,8 +1,8 @@
 # Cloudmare
 
-Cloudmare is a simple tool to find the origin servers of websites protected by Cloudflare, Sucuri, or Incapsula with a misconfiguration DNS.
+Cloudmare is a simple tool to find the origin servers of websites protected by Cloudflare, Sucuri, or Incapsula with a misconfigured DNS.
 
-For more detail about this common misconfiguration and how Cloudmare works, send me a private message.
+For more details about this common misconfigured and how Cloudmare works, send me a private message.
 
 Here's what Cloudmare looks like in action.
 
@@ -51,7 +51,7 @@ Note: Be patient if the script requires to install modules.
 
 ## Compatibility
 
-Tested on Python=<3.7 (don't use Python 2 more), working on Linux and Windows. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
+Tested on Python>=3.7 (don't use Python 2 anymore), working on Linux and Windows. Feel free to [open an issue] if you have bug reports or questions. If you want to collaborate, you're welcome.
 
 ## Donate
 

@@ -20,7 +20,7 @@ import thirdparty.dns.rdatatype
 import thirdparty.dns.resolver
 
 from lib.utils.colors import tab, warn
-# Python 2.x and 3.x compatiablity
+# Python 2.x and 3.x compatibility
 # We need the Queue library for exception handling
 try:
     import queue as Queue
@@ -30,7 +30,7 @@ except Exception:
 # The 'multiprocessing' library does not rely upon a Global Interpreter Lock (GIL)
 import multiprocessing
 
-# Microsoft compatiablity
+# Microsoft compatibility
 if sys.platform.startswith('win'):
     # Drop-in replacement,  subbrute + multiprocessing throws exceptions on windows.
     import threading
@@ -66,7 +66,7 @@ class verify_nameservers(multiprocessing.Process):
         resolver.timeout = 1
         resolver.lifetime = 1
         try:
-            # Lets test the letancy of our connection.
+            # Lets test the latency of our connection.
             # Google's DNS server should be an ideal time test.
             resolver.nameservers = ['8.8.8.8']
             resolver.query(self.most_popular_website, self.record_type)
@@ -117,7 +117,7 @@ class verify_nameservers(multiprocessing.Process):
         return added_resolver
 
     def run(self):
-        # Every user will get a different set of resovlers, this helps Ristribute traffic.
+        # Every user will get a different set of resolvers, this helps Retribute traffic.
         random.shuffle(self.resolver_list)
         if not self.verify(self.resolver_list):
             # This should never happen,  inform the user.
@@ -133,10 +133,10 @@ class verify_nameservers(multiprocessing.Process):
     # Only add the nameserver to the queue if we can detect wildcards.
     # Returns False on error.
     def find_wildcards(self, host):
-        # We want sovle the following three problems:
+        # We want solve the following three problems:
         # 1)The target might have a wildcard DNS record.
-        # 2)The target maybe using geolocaiton-aware thirdparty.dns.
-        # 3)The DNS server we are testing may respond to non-exsistant 'A' records with advertizements.
+        # 2)The target maybe using geolocation-aware thirdparty.dns.
+        # 3)The DNS server we are testing may respond to non-existent 'A' records with advertisements.
         # I have seen a CloudFlare Enterprise customer with the first two conditions.
         try:
             # This is case #3,  these spam nameservers seem to be more trouble then they are worth.
@@ -162,7 +162,7 @@ class verify_nameservers(multiprocessing.Process):
                         if w not in self.wildcards:
                             # wildcards were detected.
                             self.wildcards[w] = None
-                            # We found atleast one wildcard, look for more.
+                            # We found at least one wildcard, look for more.
                             looking_for_wildcards = True
             except Exception as e:
                 if type(e) == thirdparty.dns.resolver.NXDOMAIN or type(e) == thirdparty.dns.name.EmptyLabel:
@@ -220,7 +220,7 @@ class lookup(multiprocessing.Process):
         cname_record = []
         retries = 0
         if len(self.resolver.nameservers) <= self.requiR_nameservers:
-            # This process needs more nameservers,  lets see if we have one avaible
+            # This process needs more nameservers,  lets see if we have one available
             self.resolver.nameservers += self.get_ns()
         # Ok we should be good to go.
         while True:
@@ -275,9 +275,9 @@ class lookup(multiprocessing.Process):
                     if retries >= 3:
                         if retries > 3:
                             # Sometimes 'internal use' subdomains will timeout for every request.
-                            # As far as I'm concerned, the authorative name server has told us this domain exists,
+                            # As far as I'm concerned, the authoritative name server has told us this domain exists,
                             # we just can't know the address value using this method.
-                            return ['Mutiple Query Timeout - External address resolution was restricted']
+                            return ['Multiple Query Timeout - External address resolution was restricted']
                         else:
                             # Maybe another process can take a crack at it.
                             self.in_q.put((host, record_type, retries + 1))
@@ -328,7 +328,7 @@ class lookup(multiprocessing.Process):
                 break
             else:
                 if len(work) == 3:
-                    # keep track of how many times this lookup has timedout.
+                    # keep track of how many times this lookup has timeout.
                     (hostname, record_type, timeout_retries) = work
                     response = self.check(hostname, record_type, timeout_retries)
                 else:
@@ -337,14 +337,14 @@ class lookup(multiprocessing.Process):
                 sys.stdout.flush()
                 trace(response)
                 # self.wildcards is populated by the verify_nameservers() thread.
-                # This variable doesn't need a muetex, because it has a queue.
+                # This variable doesn't need a mutex, because it has a queue.
                 # A queue ensure nameserver cannot be used before it's wildcard entries are found.
                 reject = False
                 if response:
                     for a in response:
                         a = str(a)
                         if a in self.wildcards:
-                            trace("resovled wildcard:", hostname)
+                            trace("resolved wildcard:", hostname)
                             reject = True
                             # reject this domain.
                             break
@@ -447,7 +447,7 @@ def run(target,
     resolve_list = check_open(resolve_list)
     if (len(resolve_list) / 16) < process_count:
         sys.stderr.write(
-            f'{tab*2}{warn}Fewer than 16 resovlers per thread, consider adding more nameservers to resolvers.txt.\n')
+            f'{tab*2}{warn}Fewer than 16 resolvers per thread, consider adding more nameservers to resolvers.txt.\n')
     if os.name == 'nt':
         wildcards = {}
         spider_blacklist = {}
@@ -459,7 +459,7 @@ def run(target,
     # have a buffer of at most two new nameservers that lookup processes can draw from.
     resolve_q = multiprocessing.Queue(maxsize=2)
 
-    # Make a source of fast nameservers avaiable for other processes.
+    # Make a source of fast nameservers available for other processes.
     verify_nameservers_proc = verify_nameservers(target, record_type, resolve_q, resolve_list, wildcards)
     verify_nameservers_proc.start()
     # The empty string
@@ -607,11 +607,11 @@ if __name__ == "__main__":
     parser.add_option("-a", "-A", action='store_true', dest="ipv4", default=False,
                       help="(optional) Print all IPv4 addresses for sub domains (default = off).")
     parser.add_option("--type", dest="type", default=False,
-                      type="string", help="(optional) Print all reponses for an arbitrary "
+                      type="string", help="(optional) Print all responses for an arbitrary "
                       "DNS record type (CNAME, AAAA, TXT, SOA, MX...)")
     parser.add_option("-c", "--process_count", dest="process_count",
                       default=16, type="int",
-                      help="(optional) Number of lookup theads to run. default = 16")
+                      help="(optional) Number of lookup threads to run. default = 16")
     parser.add_option("-f", "--filter_subs", dest="filter", default="",
                       type="string", help="(optional) A file containing unorganized domain "
                       "names which will be filteR into a list of subdomains sorted by frequency.  "
@@ -623,7 +623,7 @@ if __name__ == "__main__":
     verbose = options.verbose
 
     if len(args) < 1 and options.filter == "" and options.targets == "":
-        parser.error("You must provie a target. Use -h for help.")
+        parser.error("You must provide a target. Use -h for help.")
 
     if options.filter != "":
         # cleanup this file and print it out

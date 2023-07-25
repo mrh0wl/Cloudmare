@@ -129,7 +129,7 @@ def subdomain_sorting_key(hostname):
     return parts, 0
 
 
-class enumratorBase(object):
+class enumeratorBase(object):
     def __init__(self, base_url, engine_name, domain, subdomains=None, silent=False, verbose=True):
         subdomains = subdomains or []
         self.domain = urlparse.urlparse(domain).netloc
@@ -185,26 +185,26 @@ class enumratorBase(object):
 
     # override
     def extract_domains(self, resp):
-        """ chlid class should override this function """
+        """ child class should override this function """
         return
 
     # override
     def check_response_errors(self, resp):
-        """ chlid class should override this function
+        """ child class should override this function
         The function should return True if there are no errors and False otherwise
         """
         return True
 
     def should_sleep(self):
-        """Some enumrators require sleeping to avoid bot detections like Google enumerator"""
+        """Some enumerators require sleeping to avoid bot detections like Google enumerator"""
         return
 
     def generate_query(self):
-        """ chlid class should override this function """
+        """ child class should override this function """
         return
 
     def get_page(self, num):
-        """ chlid class that user different pagnation counter should override this function """
+        """ child class that user different pagination counter should override this function """
         return num + 10
 
     def enumerate(self, altquery=False):
@@ -247,10 +247,10 @@ class enumratorBase(object):
         return self.subdomains
 
 
-class enumratorBaseThreaded(multiprocessing.Process, enumratorBase):
+class enumeratorBaseThreaded(multiprocessing.Process, enumeratorBase):
     def __init__(self, base_url, engine_name, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
-        enumratorBase.__init__(self, base_url, engine_name, domain, subdomains, silent=silent, verbose=verbose)
+        enumeratorBase.__init__(self, base_url, engine_name, domain, subdomains, silent=silent, verbose=verbose)
         multiprocessing.Process.__init__(self)
         self.q = q
         return
@@ -264,7 +264,7 @@ class enumratorBaseThreaded(multiprocessing.Process, enumratorBase):
             print(bad + 'Cannot connect to DNSDumpster. Please try again later')
 
 
-class GoogleEnum(enumratorBaseThreaded):
+class GoogleEnum(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = "https://google.com/search?q={query}&btnG=Search&hl=en-US&biw=&bih=&gbv=1&start={page_no}&filter=0"
@@ -317,7 +317,7 @@ class GoogleEnum(enumratorBaseThreaded):
         return query
 
 
-class YahooEnum(enumratorBaseThreaded):
+class YahooEnum(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = "https://search.yahoo.com/search?p={query}&b={page_no}"
@@ -369,7 +369,7 @@ class YahooEnum(enumratorBaseThreaded):
         return query
 
 
-class AskEnum(enumratorBaseThreaded):
+class AskEnum(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = 'http://www.ask.com/web?q={query}&page={page_no}\
@@ -377,7 +377,7 @@ class AskEnum(enumratorBaseThreaded):
         self.engine_name = "Ask"
         self.MAX_DOMAINS = 11
         self.MAX_PAGES = 0
-        enumratorBaseThreaded.__init__(self, base_url, self.engine_name, domain,
+        enumeratorBaseThreaded.__init__(self, base_url, self.engine_name, domain,
                                        subdomains, q=q, silent=silent, verbose=verbose)
         self.q = q
         return
@@ -414,14 +414,14 @@ class AskEnum(enumratorBaseThreaded):
         return query
 
 
-class BingEnum(enumratorBaseThreaded):
+class BingEnum(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = 'https://www.bing.com/search?q={query}&go=Submit&first={page_no}'
         self.engine_name = "Bing"
         self.MAX_DOMAINS = 30
         self.MAX_PAGES = 0
-        enumratorBaseThreaded.__init__(self, base_url, self.engine_name, domain, subdomains, q=q, silent=silent)
+        enumeratorBaseThreaded.__init__(self, base_url, self.engine_name, domain, subdomains, q=q, silent=silent)
         self.q = q
         self.verbose = verbose
         return
@@ -459,14 +459,14 @@ class BingEnum(enumratorBaseThreaded):
         return query
 
 
-class BaiduEnum(enumratorBaseThreaded):
+class BaiduEnum(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = 'https://www.baidu.com/s?pn={page_no}&wd={query}&oq={query}'
         self.engine_name = "Baidu"
         self.MAX_DOMAINS = 2
         self.MAX_PAGES = 760
-        enumratorBaseThreaded.__init__(self, base_url, self.engine_name, domain,
+        enumeratorBaseThreaded.__init__(self, base_url, self.engine_name, domain,
                                        subdomains, q=q, silent=silent, verbose=verbose)
         self.querydomain = self.domain
         self.q = q
@@ -520,7 +520,7 @@ class BaiduEnum(enumratorBaseThreaded):
         return query
 
 
-class NetcraftEnum(enumratorBaseThreaded):
+class NetcraftEnum(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         self.base_url = 'https://searchdns.netcraft.com/?restriction=site+ends+with&host={domain}'
@@ -597,7 +597,7 @@ class NetcraftEnum(enumratorBaseThreaded):
         return links_list
 
 
-class DNSdumpster(enumratorBaseThreaded):
+class DNSdumpster(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = 'https://dnsdumpster.com/'
@@ -677,7 +677,7 @@ class DNSdumpster(enumratorBaseThreaded):
         return links
 
 
-class Virustotal(enumratorBaseThreaded):
+class Virustotal(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         self.parser = ConfigParser()
         self.parser.read("data/APIs/api.conf")
@@ -692,7 +692,7 @@ class Virustotal(enumratorBaseThreaded):
         try:
             self.apikey = self.parser.get('VTOTAL', 'api_key')
         except Exception:
-            self.print_(bad + R + "Couldnt Open \"api.conf\" file and read it!" + W)
+            self.print_(bad + R + "Couldn't Open \"api.conf\" file and read it!" + W)
         return
 
     # the main send_req need to be rewritten
@@ -765,7 +765,7 @@ with open('data/APIs/api.conf', 'w') as configfile:
             pass
 
 
-class ThreatCrowd(enumratorBaseThreaded):
+class ThreatCrowd(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = 'https://www.threatcrowd.org/searchApi/v2/domain/report/?domain={domain}'
@@ -804,7 +804,7 @@ class ThreatCrowd(enumratorBaseThreaded):
             pass
 
 
-class CrtSearch(enumratorBaseThreaded):
+class CrtSearch(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = 'https://crt.sh/?q=%25.{domain}'
@@ -856,7 +856,7 @@ class CrtSearch(enumratorBaseThreaded):
             print(e)
 
 
-class PassiveDNS(enumratorBaseThreaded):
+class PassiveDNS(enumeratorBaseThreaded):
     def __init__(self, domain, subdomains=None, q=None, silent=False, verbose=True):
         subdomains = subdomains or []
         base_url = 'https://api.sublist3r.com/search.php?domain={domain}'
@@ -967,7 +967,7 @@ def main(domain, threads, savefile, ports, silent, verbose, enable_bruteforce, e
                          'threatcrowd': ThreatCrowd,
                          'ssl': CrtSearch,
                          'passivedns': PassiveDNS
-                         }
+                        }
 
     chosenEnums = []
 
